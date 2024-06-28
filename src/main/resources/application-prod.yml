@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: TODO
+    username: TODO
+    password: 'TODO
+  jpa:
+    hibernate:
+      ddl-auto: TODO

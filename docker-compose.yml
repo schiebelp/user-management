@@ -1,0 +1,38 @@
+services:
+  postgres-db:
+    image: postgres:16
+    networks:
+      - user-management-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: always
+    environment:
+      - POSTGRES_USER=api_user
+      - POSTGRES_PASSWORD=pwapi
+      - POSTGRES_DB=api_db
+    ports:
+      - "5432:5432"
+  user-management:
+    image: user-management-image:latest
+    networks:
+      - user-management-network
+    volumes:
+      - user-management-data:/app/data
+    build:
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/api_db
+      - SPRING_DATASOURCE_USERNAME=api_user
+      - SPRING_DATASOURCE_PASSWORD=pwapi
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+
+networks:
+  user-management-network:
+
+volumes:
+  postgres-data:
+  user-management-data:

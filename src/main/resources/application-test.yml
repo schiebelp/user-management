@@ -1,0 +1,15 @@
+spring:
+  config:
+    import: application-local.yml # replace with test environment if needed
+
+#spring:
+#  datasource:
+#    url: TEST_URL
+#    username: TEST_USER
+#    password: TEST_PASS
+#  jpa:
+#    hibernate:
+#      ddl-auto: TEST_DDL_OPTION
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
