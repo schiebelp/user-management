@@ -2,12 +2,12 @@ package cz.demo.usermanagement.repository.entity;
 
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-
+import lombok.*;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name="\"User\"") // reserved keyword in postgre
 public class UserEntity {

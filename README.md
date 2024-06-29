@@ -2,6 +2,7 @@
 
 Simple Spring boot application with the following characteristics:
  - PostreSQL repository quickly available in docker container (therefore H2 not used)
+ - 
 
 To quickly run Spring Boot + PostgreSQL use docker commands below.
 
