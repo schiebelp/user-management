@@ -218,13 +218,10 @@ public class UserServiceIntTest {
     }
 
     @Test
-    @DisplayName("then delete by non persisted id silently fails")
+    @DisplayName("non existing user delete exception")
     public void whenNonExistingUser_thenDeleteById_silenFail() {
 
-        var id= 999L;
-
-        // when
-        tested.deleteUser(id);
+        assertThrows(RuntimeException.class, () -> tested.deleteUser(999L));
 
     }
 

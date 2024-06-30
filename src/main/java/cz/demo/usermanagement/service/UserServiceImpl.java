@@ -61,8 +61,8 @@ public class UserServiceImpl implements UserService {
 
         // Only admin or same user can update
         if(!existingUser.getUserName().equals(loggedUserName) &&
-                !existingUser.getUserName().equals(adminUsername)) {
-            log.info("Only admin or same user can update");
+                !loggedUserName.equals(adminUsername)) {
+            log.info("Only admin {} or same user {} can update", adminUsername, existingUser.getUserName());
             throw new UnauthorizedException("Only admin or same user can update");
         }
 

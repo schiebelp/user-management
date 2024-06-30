@@ -192,17 +192,11 @@ public class UserEntityRepositoryIntTest {
     }
 
     @Test
-    @DisplayName("then delete by non persisted id silently fails")
-    public void whenNonExistingUser_thenDeleteById_silenFail() {
+    @DisplayName("non existing user delete exception")
+    public void whenNonExistingUser_thenDeleteById_throwsException() {
 
-        var id= 999L;
+        assertThrows(RuntimeException.class, () -> tested.deleteById(999L));
 
-        // when
-        tested.deleteById(id);
-
-        // then
-        Optional<UserEntity> foundUser = tested.findById(id);
-        assertThat(foundUser.isEmpty()).isTrue();
     }
 
 

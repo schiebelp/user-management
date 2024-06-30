@@ -1,20 +1,21 @@
-package cz.demo.usermanagement.service.domain;
+package cz.demo.usermanagement.controller.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.ToString;
 
 @Data
-@Builder
-@AllArgsConstructor
-public class User {
+public class SaveUserRequest {
 
-    private Long id;
+    @NotBlank(message = "Name is mandatory")
     private String userName;
+
     private String password;
 
+    @NotBlank(message = "First name is mandatory")
     private String firstName;
+
+    @NotBlank(message = "Last name is mandatory")
     private String lastName;
 
     @ToString.Include(name = "password")

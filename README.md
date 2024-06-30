@@ -1,26 +1,58 @@
 # Spring Boot User Management API and PostgreSQL (Dockerized)
 
 Simple Spring boot application with the following characteristics:
- - PostreSQL repository quickly available in docker container (therefore H2 not used)
- - 
+- **PostreSQL image** available in docker container (therefore H2 not used)
+- Standard **REST Controller** - **Service** - **Repository** pattern to separate concerns
+- Basic Authentization used by Spring Security
 
-To quickly run Spring Boot + PostgreSQL use docker commands below.
+## To run local Spring boot and PostgreSql image:
 
-To run integration test on localhost, first Setup images and run Postgre image to have backend DB available.
+1) Start docker daemon
 
-## Dockerized Spring Boot + PostgreSQL
+2) Start PostreSQL Image
+``` bash
+docker-compose build postgres-db && docker-compose up
+```
 
-To build whole Spring boot + PostgreSQL and run using Docker images from a [docker-compose.yml](docker-compose.yml) simply run commands:
+3) Run Management API
+   Please run `./gradlew bootRun`.
 
-### Setup & Start images
+4) Application REST API is available at http://localhost:8080/users
+
+## To Run dockerize Spring Boot and PostgreSql images:
+
+1) Please run
 ``` bash
 docker build --no-cache . && docker-compose up
 ```
 
-The application should be available at
-http://localhost:8080/example - no authorization
+No cache option:
+``` bash
+docker build --no-cache . && docker-compose up
+```
 
-http://localhost:8080/users - basic authorization needed (admin:password or created user)
+2) Application REST API is available at http://localhost:8080/users
+
+To check details like ports, etc. run
+``` bash
+docker ps
+```
+
+## Testing application
+
+Application REST API is available at http://localhost:8080/users
+
+REST Api yaml for test: [api.yml](src%2Fmain%2Fresources%2Fapi.yml)
+
+Basic authorization is based on Admin
+username = admin
+password = password
+
+Or a saved User in database.
+
+User can be created using API.
+
+### Notes:
 
 #### Setup images option only
 ``` bash
@@ -31,3 +63,5 @@ docker build --no-cache .
 ``` bash
 docker-compose up postgres-db
 ```
+
+Todo: Auto generate yaml, Long id validation, More tests...

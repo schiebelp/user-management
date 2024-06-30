@@ -2,6 +2,7 @@ package cz.demo.usermanagement.repository.entity;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Data
@@ -17,14 +18,24 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
     private String userName;
 
+    @NotNull
     private String password;
 
+    @NotNull
     private String firstName;
 
+    @NotNull
     private String lastName;
 
 //    private String role; //todo
+
+    @ToString.Include(name = "password")
+    public String getPasswordMasked() {
+        return password != null ? "***" : "null";
+    }
+
 }
 
