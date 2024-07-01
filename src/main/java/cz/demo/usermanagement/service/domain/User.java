@@ -21,4 +21,5 @@ public class User {
     public String getPasswordMasked() {
         return password != null ? "***" : "null";
     }
+
 }

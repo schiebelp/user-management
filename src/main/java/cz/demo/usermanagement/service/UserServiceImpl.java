@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * BUS vrstva manipulace s uzivatelem
+ * Business layer for User operations
  */
 @Service
 @RequiredArgsConstructor

@@ -12,3 +12,9 @@ spring:
   admin:
     username: admin
     password: $2a$10$JF.GmZ5gwEJKPpLwGa5FN.L/.ir/KzEt9tTqnvriUJmEyb1BVRTi6
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

@@ -5,7 +5,7 @@ import cz.demo.usermanagement.service.domain.User;
 import java.util.List;
 
 /**
- * BUS vrstva manipulace s uzivatelem
+ * Business layer for User operations
  */
 public interface UserService {
 

@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.ToString;
 
+/**
+ * DTO for UserAPI
+ */
 @Data
 public class SaveUserRequest {
 

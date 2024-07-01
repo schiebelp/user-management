@@ -1,4 +1,4 @@
-package cz.demo.usermanagement.config;
+package cz.demo.usermanagement.service;
 
 
 
@@ -14,6 +14,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+/**
+ * Concrete security implementation to load user specific data from Users repository
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

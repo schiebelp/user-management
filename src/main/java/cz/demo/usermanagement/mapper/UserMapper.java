@@ -10,6 +10,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.ReportingPolicy;
 
+/**
+ * Mapstruct for conversion between Controller - Service - Repository
+ */
 @Mapper(componentModel = "spring", //managed by Spring as a singleton
         unmappedTargetPolicy = ReportingPolicy.ERROR,
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
@@ -17,14 +20,14 @@ import org.mapstruct.ReportingPolicy;
 public interface UserMapper {
 
     /**
-     * Mapovaci metoda: SaveUserRequest -> User
+     * Mapping method: SaveUserRequest -> User
      *
      * @return User
      */
     User toUser(Long id, SaveUserRequest saveUserRequest);
 
     /**
-     * Mapovaci metoda: User -> GetUserResponseData
+     * Mapping method: User -> GetUserResponseData
      *
      * @return GetUserResponseData
      */
@@ -32,14 +35,14 @@ public interface UserMapper {
 
 
     /**
-     * Mapovaci metoda: User -> UserEntity
+     * Mapping method: User -> UserEntity
      *
      * @return UserEntity
      */
     UserEntity toUserEntity(User user);
 
     /**
-     * Mapovaci metoda: UserEntity -> User
+     * Mapping method: UserEntity -> User
      *
      * @return User
      */
