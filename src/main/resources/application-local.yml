@@ -1,4 +1,6 @@
 spring:
+#  mvc:
+#    problemdetails: enabled
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/api_db

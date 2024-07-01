@@ -23,7 +23,7 @@ public interface UserService {
      * @param user k aktualizaci
      * @param loggedUserName prihlaseny uziv.
      */
-    void updateUser( User user, String loggedUserName);
+    void updateUser(User user, String loggedUserName);
 
     /**
      * Vrati vsechny uziv.
@@ -38,13 +38,13 @@ public interface UserService {
      * @param userId id
      * @return uziv.
      */
-    User getUserById(Long userId);
+    User getUserById(Integer userId);
 
     /**
      * Vymaze uzivatele
      *
      * @param id id
      */
-    void deleteUser(Long id);
+    void deleteUser(Integer id);
 
 }

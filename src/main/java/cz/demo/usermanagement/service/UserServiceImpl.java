@@ -1,7 +1,6 @@
 package cz.demo.usermanagement.service;
 
 
-
 import cz.demo.usermanagement.exception.UnauthorizedException;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * BUS vrstva manipulace s uzivatelem
@@ -52,7 +50,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateUser(User request, String loggedUserName) {
-        Long id = request.getId();
+        Integer id = request.getId();
 
         log.info("Started update user with id = " + id);
 
@@ -79,11 +77,11 @@ public class UserServiceImpl implements UserService {
         log.info("Started get all users");
         return userRepository.findAll().stream()
                 .map(userMapper::toUser)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
-    public User getUserById(Long userId) {
+    public User getUserById(Integer userId) {
         log.info("Started get user with id = " + userId);
 
         UserEntity user = userRepository.findById(userId)
@@ -95,7 +93,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(Long id) {
+    public void deleteUser(Integer id) {
         log.info("Started delete user with id = " + id);
 
         userRepository.deleteById(id);

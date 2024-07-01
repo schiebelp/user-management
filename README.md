@@ -4,6 +4,7 @@ Simple Spring boot application with the following characteristics:
 - **PostreSQL image** available in docker container (therefore H2 not used)
 - Standard **REST Controller** - **Service** - **Repository** pattern to separate concerns
 - Basic Authentization used by Spring Security
+- RFC-7807 errors format
 
 ## To run local Spring boot and PostgreSql image:
 
@@ -38,7 +39,7 @@ To check details like ports, etc. run
 docker ps
 ```
 
-## Testing application
+## REST API details
 
 Application REST API is available at http://localhost:8080/users
 
@@ -64,4 +65,8 @@ docker build --no-cache .
 docker-compose up postgres-db
 ```
 
-Todo: Auto generate yaml, Long id validation, More tests...
+Todo: 
+- Auto generate yaml,
+- tests controller,
+- junit tests not just integr. tests
+- DB not up test to fail early(Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided))

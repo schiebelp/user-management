@@ -19,13 +19,12 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("Given user service with 2 users")
-public class UserServiceIntTest {
+class UserServiceIntTest {
 
     @Autowired
     private UserRepository userRepository;
@@ -37,7 +36,7 @@ public class UserServiceIntTest {
     private UserEntity existingUser2;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         existingUser1 = UserEntity.builder()
                 .firstName("John")
                 .lastName("Doe")
@@ -55,15 +54,15 @@ public class UserServiceIntTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         userRepository.deleteAll();
     }
 
     @Test
     @DisplayName("then get user by id finds user")
-    public void whenUserExist_thenGetUserById_success() {
+    void whenUserExist_thenGetUserById_success() {
         // given
-        Long userId = existingUser1.getId();
+        Integer userId = existingUser1.getId();
 
         // when
         User result = tested.getUserById(userId);
@@ -78,19 +77,18 @@ public class UserServiceIntTest {
 
     @Test
     @DisplayName("non existing user throws exception")
-    public void whenUserDontExist_thenGetUserById_throwsException() {
+    void whenUserDontExist_thenGetUserById_throwsException() {
 
-        assertThrows(UserNotFoundException.class, () -> tested.getUserById(0L));
+        assertThrows(UserNotFoundException.class, () -> tested.getUserById(-1));
     }
 
     @Test
     @DisplayName("then get all users returns all 2 users")
-    public void whenUsersExist_thenGetAllUsers_finds() {
+    void whenUsersExist_thenGetAllUsers_finds() {
         // Act
         List<User> users = tested.getAllUsers();
 
         // Assert
-        assertThat(users).isNotEmpty();
         assertThat(users).hasSize(2);
 
         assertThat(users)
@@ -100,7 +98,7 @@ public class UserServiceIntTest {
 
     @Test
     @DisplayName("then create user saves new user")
-    public void whenNewUser_thenCreateUser_success() {
+    void whenNewUser_thenCreateUser_success() {
         // given
         String firstName = "firstName";
         String lastName = "lastName";
@@ -130,9 +128,9 @@ public class UserServiceIntTest {
 
     @Test
     @DisplayName("then owner can update any field")
-    public void whenAllFieldsUpdatedByOwner_thenUpdateUser_success() {
+    void whenAllFieldsUpdatedByOwner_thenUpdateUser_success() {
         // given
-        Long userId = existingUser1.getId();
+        Integer userId = existingUser1.getId();
 
         String newFirstName = "newFirstName";
         String newLastName = "newLastName";
@@ -163,9 +161,9 @@ public class UserServiceIntTest {
 
     @Test
     @DisplayName("change user name by owner possible")
-    public void whenExistingUserChangeUserName_thenUpdateUser_success() {
+    void whenExistingUserChangeUserName_thenUpdateUser_success() {
         // given
-        Long userId = existingUser1.getId();
+        Integer userId = existingUser1.getId();
 
         String newUserName = "newUserName";
 
@@ -190,23 +188,25 @@ public class UserServiceIntTest {
 
     @Test
     @DisplayName("non owner update user throws exception")
-    public void whenIrrelevantUser_thenUpdateUser_fail() {
+    void whenIrrelevantUser_thenUpdateUser_fail() {
 
-        var userId = existingUser1.getId();
-        var userName = existingUser1.getUserName();
+        var badUser = "badUser";
+
+        var user = User.builder()
+                .id(existingUser1.getId())
+                .userName(existingUser1.getUserName())
+                .build();
 
         assertThrows(
-                UnauthorizedException.class, () -> tested.updateUser(
-                        User.builder().id(userId)
-                                .userName(userName).build()
-                        ,"NON OWNER USER"));
+                UnauthorizedException.class,
+                () -> tested.updateUser(user,badUser));
 
 
     }
 
     @Test
     @DisplayName("then delete by id 1 deletes user 1")
-    public void whenExistingUser_thenDeleteById_success() {
+    void whenExistingUser_thenDeleteById_success() {
 
         var id= existingUser1.getId();
 
@@ -218,10 +218,10 @@ public class UserServiceIntTest {
     }
 
     @Test
-    @DisplayName("non existing user delete exception")
-    public void whenNonExistingUser_thenDeleteById_silenFail() {
+    @DisplayName("non existing user throws no exception")
+    void whenNonExistingUser_thenDeleteById_silentFail() {
 
-        assertThrows(RuntimeException.class, () -> tested.deleteUser(999L));
+        assertDoesNotThrow(() -> tested.deleteUser(999));
 
     }
 

@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.20.1
 
 ## Install OpenJDK 17
 RUN apk add --no-cache openjdk17

@@ -16,7 +16,7 @@ public class UserEntity {
     // atributy id a name, username, password, role
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @NotNull
     private String userName;
@@ -29,8 +29,6 @@ public class UserEntity {
 
     @NotNull
     private String lastName;
-
-//    private String role; //todo
 
     @ToString.Include(name = "password")
     public String getPasswordMasked() {

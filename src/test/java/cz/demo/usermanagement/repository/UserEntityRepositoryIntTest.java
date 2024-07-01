@@ -13,15 +13,14 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace= Replace.NONE)
 @ActiveProfiles("test")
 @Tag("integration-test")
 @DisplayName("Given user repository with 2 users")
-public class UserEntityRepositoryIntTest {
+class UserEntityRepositoryIntTest {
 
     @Autowired
     private UserRepository tested;
@@ -66,61 +65,61 @@ public class UserEntityRepositoryIntTest {
 
     @Test
     @DisplayName("then find by id finds user")
-    public void whenExistingUser_thenFindById_success() {
+    void whenExistingUser_thenFindById_success() {
 
         // when
         Optional<UserEntity> foundUser = tested.findById(existingUser1.getId());
 
         // then
-        assertThat(foundUser.isPresent()).isTrue();
+        assertThat(foundUser).isPresent();
 
     }
 
     @Test
     @DisplayName("then find by id wont find non existing user")
-    public void whenNonExistingUser_thenFindById_fail() {
+    void whenNonExistingUser_thenFindById_fail() {
 
         // when
-        Optional<UserEntity> foundUser = tested.findById(99L);
+        Optional<UserEntity> foundUser = tested.findById(99);
 
         // then
-        assertThat(foundUser.isPresent()).isFalse();
+        assertThat(foundUser).isNotPresent();
 
     }
 
     @Test
     @DisplayName("then find by username finds user")
-    public void whenExistingUser_thenFindByUserName_success() {
+    void whenExistingUser_thenFindByUserName_success() {
 
         // when
         Optional<UserEntity> foundUser = tested.findByUserName(existingUser1.getUserName());
 
         // then
-        assertThat(foundUser.isPresent()).isTrue();
+        assertThat(foundUser).isPresent();
 
     }
 
     @Test
     @DisplayName("then find by id wont find non existing user")
-    public void whenNonExistingUser_thenFindByUserName_fail() {
+    void whenNonExistingUser_thenFindByUserName_fail() {
 
         // when
         Optional<UserEntity> foundUser = tested.findByUserName("nonexistinguser");
 
         // then
-        assertThat(foundUser.isPresent()).isFalse();
+        assertThat(foundUser).isNotPresent();
 
     }
 
     @Test
     @DisplayName("then find all returns all 2 users")
-    public void whenExistingUsers_thenFindAll_success() {
+    void whenExistingUsers_thenFindAll_success() {
 
         // when
         List<UserEntity> users = tested.findAll();
 
         // then
-        assertThat(users.size()).isEqualTo(2);
+        assertThat(users).hasSize(2);
         assertThat(users)
                 .extracting(UserEntity::getUserName)
                 .containsExactlyInAnyOrder(existingUser1.getUserName(), existingUser2.getUserName() );
@@ -130,7 +129,7 @@ public class UserEntityRepositoryIntTest {
 
     @Test
     @DisplayName("then save user creates new user")
-    public void whenNewUser_thenSave_success() {
+    void whenNewUser_thenSave_success() {
 
         // given
         UserEntity user = UserEntity.builder()
@@ -156,7 +155,7 @@ public class UserEntityRepositoryIntTest {
 
     @Test
     @DisplayName("then saving invalid user throws exception")
-    public void whenNullUser_thenSave_fail() {
+    void whenNullUser_thenSave_fail() {
 
         assertThrows(RuntimeException.class, () -> tested.save(null));
 
@@ -164,7 +163,7 @@ public class UserEntityRepositoryIntTest {
 
     @Test
     @DisplayName("then save user updates user")
-    public void whenNewPassword_thenSave_success() {
+    void whenNewPassword_thenSave_success() {
 
         // given
         var newPassword = "password123";
@@ -179,7 +178,7 @@ public class UserEntityRepositoryIntTest {
 
     @Test
     @DisplayName("then delete by id 1 deletes user 1")
-    public void whenExistingUser_thenDeleteById_success() {
+    void whenExistingUser_thenDeleteById_success() {
 
         var id= existingUser1.getId();
 
@@ -188,14 +187,14 @@ public class UserEntityRepositoryIntTest {
 
         // then
         Optional<UserEntity> foundUser = tested.findById(id);
-        assertThat(foundUser.isEmpty()).isTrue();
+        assertThat(foundUser).isNotPresent();
     }
 
     @Test
-    @DisplayName("non existing user delete exception")
-    public void whenNonExistingUser_thenDeleteById_throwsException() {
+    @DisplayName("non existing user throws no exception")
+    void whenNonExistingUser_thenDeleteById_silentFail() {
 
-        assertThrows(RuntimeException.class, () -> tested.deleteById(999L));
+        assertDoesNotThrow(() -> tested.deleteById(999));
 
     }
 

@@ -9,24 +9,16 @@ import cz.demo.usermanagement.exception.UserServerException;
 import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.service.UserService;
 import cz.demo.usermanagement.service.domain.User;
-
-
 import io.swagger.annotations.*;
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @Validated
@@ -90,7 +82,7 @@ public class UserController {
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "500 Internal Server Error") })
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@ApiParam(value = "ID of the user to delete",required=true) @PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteUser(@ApiParam(value = "ID of the user to delete",required=true) @PathVariable("id") Integer id) {
         log.info("Started delete user with id = " + id);
 
         userService.deleteUser(id);
@@ -120,7 +112,7 @@ public class UserController {
         List<User> users = userService.getAllUsers();
 
         return ResponseEntity.ok(users.stream()
-                .map(userMapper::userToGetUserResponseData).collect(Collectors.toList()));
+                .map(userMapper::userToGetUserResponseData).toList());
     }
 
     /**
@@ -135,7 +127,6 @@ public class UserController {
      *         or 500 Internal Server Error (status code 500)
      */
     @ApiOperation(value = "Get a user by ID", nickname = "getUserById", notes = "Returns a single user", response = GetUserResponse.class, authorizations = {
-
             @Authorization(value = "basicAuth")
     }, tags={ "Users"})
     @ApiResponses(value = {
@@ -146,8 +137,8 @@ public class UserController {
             @ApiResponse(code = 500, message = "500 Internal Server Error") })
     @GetMapping("/users/{id}")
     public ResponseEntity<GetUserResponse> getUserById(
-            @ApiParam(value = "ID of the user to retrieve",required=true) @PathVariable("id") Long id) {
-        // todo long validace
+            @PathVariable("id")
+            Integer id) {
         log.info("Started get user with id = " + id);
 
         User user = userService.getUserById(id);
