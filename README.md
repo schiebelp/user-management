@@ -16,7 +16,7 @@ Simple Spring boot application with the following characteristics:
 
 2) Start PostreSQL Image And Springboot
 ``` bash
-docker-compose build postgres-db && docker-compose up -d postgres-db && ./gradlew bootRun
+docker-compose up -d postgres-db && ./gradlew bootRun
 ```
 
 3) Application REST API is available at http://localhost:8080/users
@@ -25,7 +25,7 @@ docker-compose build postgres-db && docker-compose up -d postgres-db && ./gradle
 
 1) Please run
 ``` bash
-docker-compose build && docker-compose up
+docker-compose up
 ```
 
 2) Application REST API is available at http://localhost:8080/users
@@ -57,7 +57,7 @@ docker ps
 
 #### Clean, build, test before commit
 ``` bash
-./gradlew clean && ./gradlew build && ./gradlew test
+./gradlew clean && ./gradlew build
 ```
 
 
