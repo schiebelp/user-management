@@ -37,18 +37,29 @@ docker ps
 
 ## REST API details
 
-Endpoint: http://localhost:8080/users
-Documentation: http://localhost:8080/swagger-ui/index.html#/ (no security)
-Security: Basic Auth
-    - Admin: username = admin / password = password
-    - User: Saved in DB
+- **Endpoint**: http://localhost:8080/users
+- **Documentation**: http://localhost:8080/swagger-ui/index.html#/ (no security)
+- **Security**: Basic Auth
+  - Admin: username = admin / password = password
+  - User: Saved in DB
 
 ### Notes:
+
+#### Run all Tests
+``` bash
+./gradlew test
+```
 
 #### Run Spring boot
 ``` bash
 ./gradlew bootRun
 ```
+
+#### Clean, build, test before commit
+``` bash
+./gradlew clean && ./gradlew build && ./gradlew test
+```
+
 
 #### Setup images option only
 ``` bash
@@ -67,8 +78,9 @@ docker-compose up postgres-db
 
 Todo:
 - Paginated get all users
+- Consider H2 regardles, so application can be ran without postgres running
+- Use version variables in properties file to make sure no new version breaks the project
 - more tests...
 - DB not up test to fail early(Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided))
 - use BCryptPasswordEncoderTests instead of the base class to be testable
-- Consider H2 regardles, so application can be ran without postgres running
 - etc...
