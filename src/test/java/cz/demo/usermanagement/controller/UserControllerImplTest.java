@@ -38,7 +38,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WithMockUser(username = "admin", password = "password")
 class UserControllerImplTest {
 
-
     @Autowired
     protected MockMvc mvc;
 
@@ -312,7 +311,7 @@ class UserControllerImplTest {
     class UpdateUser {
 
         @Test
-        @DisplayName("200 OK")
+        @DisplayName("200 OK: User updated")
         void givenValidUser_whenPut_thenUpdated() throws Exception {
             // given
             var newUserName = "newUserName"; // <---the update
@@ -356,7 +355,7 @@ class UserControllerImplTest {
         }
 
         @Test
-        @DisplayName("200 OK: ")
+        @DisplayName("200 OK: No change on empty")
         void givenNoUsername_whenPut_thenNoChange() throws Exception {
             // given
             var id = user.getId();

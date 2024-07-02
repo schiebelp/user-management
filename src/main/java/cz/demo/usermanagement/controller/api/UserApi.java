@@ -30,7 +30,7 @@ public interface UserApi {
      */
     @Operation(
             summary = "Create new user",
-            description = "Creates new or updates existing person. Returns created/updated person with id."
+            description = "Creates new or updates existing person. Returns created person with id."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User created successfully"),
@@ -50,14 +50,14 @@ public interface UserApi {
      */
     @Operation(
             summary = "Delete a user by ID",
-            description = "Deletes user, will silently fail on non existent user"
+            description = "Deletes user, will return 200 if successful. Will return 404 if user not found."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "User deleted successfully"),
+            @ApiResponse(responseCode = "200", description = "User deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Not Found"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
     ResponseEntity<Void> deleteUser(@PathVariable(value = "id") Integer id);
-
 
     /**
      * GET /users : Get all users
@@ -117,7 +117,7 @@ public interface UserApi {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "400", description = "Bad request with description"),
             @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "404", description = "User not found"),
             @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
