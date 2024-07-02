@@ -223,11 +223,10 @@ class UserServiceIntTest {
     }
 
     @Test
-    @DisplayName("non existing user throws no exception")
+    @DisplayName("non existing user throws exception on delete")
     void whenNonExistingUser_thenDeleteById_throwsException() {
 
         assertThrows(UserNotFoundException.class, () -> tested.deleteUser(999));
-
 
     }
 
