@@ -1,11 +1,13 @@
 package cz.demo.usermanagement;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@EntityScan(basePackages = "cz.demo.usermanagement.repository.entity")
+@ComponentScan(basePackages = "cz.demo.usermanagement")
+@EnableAutoConfiguration
 public class UsermanagementApplication {
 
 	public static void main(String[] args) {

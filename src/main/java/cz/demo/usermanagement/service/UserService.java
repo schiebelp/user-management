@@ -23,7 +23,7 @@ public interface UserService {
      * @param user k aktualizaci
      * @param loggedUserName prihlaseny uziv.
      */
-    void updateUser(User user, String loggedUserName);
+    User updateUser(User user, String loggedUserName);
 
     /**
      * Vrati vsechny uziv.

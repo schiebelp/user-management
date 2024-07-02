@@ -2,7 +2,8 @@ package cz.demo.usermanagement.mapper;
 
 
 
-import cz.demo.usermanagement.controller.dto.GetUserResponse;
+import cz.demo.usermanagement.controller.dto.UpdateUserRequest;
+import cz.demo.usermanagement.controller.dto.UserResponse;
 import cz.demo.usermanagement.controller.dto.SaveUserRequest;
 import cz.demo.usermanagement.repository.entity.UserEntity;
 import cz.demo.usermanagement.service.domain.User;
@@ -24,14 +25,21 @@ public interface UserMapper {
      *
      * @return User
      */
-    User toUser(Long id, SaveUserRequest saveUserRequest);
+    User toUser(Integer id, SaveUserRequest saveUserRequest);
+
+    /**
+     * Mapping method: SaveUserRequest -> User
+     *
+     * @return User
+     */
+    User toUser(Integer id, UpdateUserRequest saveUserRequest);
 
     /**
      * Mapping method: User -> GetUserResponseData
      *
      * @return GetUserResponseData
      */
-    GetUserResponse userToGetUserResponseData(User user);
+    UserResponse toUserResponse(User user);
 
 
     /**

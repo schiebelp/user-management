@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
@@ -28,6 +29,9 @@ class UserServiceIntTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder encoder;
 
     @Autowired
     private UserServiceImpl tested;
@@ -121,7 +125,7 @@ class UserServiceIntTest {
                         () -> assertThat(r.getFirstName()).isEqualTo(firstName),
                         () -> assertThat(r.getLastName()).isEqualTo(lastName),
                         () -> assertThat(r.getUserName()).isEqualTo(userName),
-                        () -> assertThat(r.getPassword()).isEqualTo(password)
+                        () -> assertThat(r.getPassword()).isNotBlank()
                 ));
 
     }
@@ -154,7 +158,7 @@ class UserServiceIntTest {
                         () -> assertThat(r.getFirstName()).isEqualTo(newFirstName),
                         () -> assertThat(r.getLastName()).isEqualTo(newLastName),
                         () -> assertThat(r.getUserName()).isEqualTo(newUserName),
-                        () -> assertThat(r.getPassword()).isEqualTo(newPassword)
+                        () -> assertThat(r.getPassword()).isNotBlank()
                 ));
 
     }
@@ -214,14 +218,16 @@ class UserServiceIntTest {
         tested.deleteUser(id);
 
         // then
-        assertThrows(UserNotFoundException.class, () -> tested.getUserById(id));
+        assertThat(userRepository.findById(id))
+                .isNotPresent();
     }
 
     @Test
     @DisplayName("non existing user throws no exception")
-    void whenNonExistingUser_thenDeleteById_silentFail() {
+    void whenNonExistingUser_thenDeleteById_throwsException() {
 
-        assertDoesNotThrow(() -> tested.deleteUser(999));
+        assertThrows(UserNotFoundException.class, () -> tested.deleteUser(999));
+
 
     }
 

@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -24,7 +25,10 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Slf4j
 public class WebSecurityConfig {
 
-    private final PasswordEncoder passwordEncoder;
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     /**
      * Enables Basic auth for any endpoints except documentation at /swagger-ui/index.html
@@ -42,7 +46,7 @@ public class WebSecurityConfig {
                                 "/v3/api-docs/**",          // Allow Swagger API docs
                                 "/swagger-resources/**"     // Allow Swagger resources
                         ).permitAll()
-//                        // Authenticate all other requests
+                        // Authenticate all other requests
                         .anyRequest().authenticated()
 
                 )
@@ -57,7 +61,7 @@ public class WebSecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http, UserDetailsServiceImpl userDetailsService) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
 }

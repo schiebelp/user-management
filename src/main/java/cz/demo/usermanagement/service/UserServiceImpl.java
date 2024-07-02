@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -30,6 +29,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserServiceSupport userServiceSupport;
 
     @Override
     public User createUser(User request) {
@@ -40,6 +40,8 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User already registered with given userName "+request.getUserName());
         }
 
+        userServiceSupport.encodePassword(request);
+
         UserEntity userEntity = userRepository.save(userMapper.toUserEntity(request));
 
         log.info("Succesfuly created user with id = " + userEntity.getId());
@@ -49,7 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(User request, String loggedUserName) {
+    public User updateUser(User request, String loggedUserName) {
         Integer id = request.getId();
 
         log.info("Started update user with id = " + id);
@@ -58,18 +60,24 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with given id " + id));
 
         // Only admin or same user can update
-        if(!existingUser.getUserName().equals(loggedUserName) &&
-                !loggedUserName.equals(adminUsername)) {
+        if(!existingUser.getUserName().equals(loggedUserName) && !loggedUserName.equals(adminUsername)) {
+
             log.info("Only admin {} or same user {} can update", adminUsername, existingUser.getUserName());
             throw new UnauthorizedException("Only admin or same user can update");
+
         }
 
-        // Aktualizace hodnot pouze pokud byly vyplněny a jsou jiné než aktuální
-        updateIfNotNullAndChanged(request, existingUser);
+        // A way to preserve existing data - ignore null/empty values
+        if (!userServiceSupport.updateIfNotNullAndChanged(request, existingUser)){
+            log.info("Nothing to change at user with id = " + id);
+            return userMapper.toUser(existingUser);
+        }
 
-        userRepository.save(existingUser);
+        UserEntity saved = userRepository.save(existingUser);
 
-        log.info("Succesfuly updated user with id = " + id);
+        log.info("Succesfuly updated user {} ", saved);
+
+        return userMapper.toUser(saved);
     }
 
     @Override
@@ -96,29 +104,15 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Integer id) {
         log.info("Started delete user with id = " + id);
 
-        userRepository.deleteById(id);
+        userRepository.findById(id)
+                .ifPresentOrElse(
+                        user -> userRepository.deleteById(id), // action if value is present
+                        () -> { throw new UserNotFoundException(String.valueOf(id)); } // action if value is empty
+                );
 
         log.info("Succesfuly deleted user with id = " + id);
     }
 
-    private static void updateIfNotNullAndChanged(User request, UserEntity existingUser) {
 
-        if(request.getFirstName() != null && !Objects.equals(request.getFirstName(),existingUser.getFirstName() )) {
-            existingUser.setFirstName(request.getFirstName());
-        }
-
-        if(request.getLastName() != null && !Objects.equals(request.getLastName(), existingUser.getLastName())) {
-            existingUser.setLastName(request.getLastName());
-        }
-
-        if(request.getUserName() != null && !Objects.equals(request.getUserName(), existingUser.getUserName())) {
-            existingUser.setUserName(request.getUserName());
-        }
-
-        if(request.getPassword() != null && !Objects.equals(request.getPassword(), existingUser.getPassword())) {
-            existingUser.setPassword(request.getPassword());
-        }
-
-    }
 
 }
