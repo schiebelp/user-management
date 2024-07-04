@@ -12,12 +12,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
  * Business layer for User operations
+ *
+ * Note:
+ * Default transation isolation Read Committed (prevents dirty reads) is the default isolation level in Postgres, SQL Server, and Oracle
+ * Default Propagation.REQUIRED is the default propagation type of Spring
  */
 @Service
 @RequiredArgsConstructor
@@ -32,6 +37,7 @@ public class UserServiceImpl implements UserService {
     private final UserServiceSupport userServiceSupport;
 
     @Override
+    @Transactional
     public User createUser(User request) {
         log.info("Started create user" + request);
 
@@ -47,10 +53,10 @@ public class UserServiceImpl implements UserService {
         log.info("Succesfuly created user with id = " + userEntity.getId());
 
         return userMapper.toUser(userEntity);
-
     }
 
     @Override
+    @Transactional
     public User updateUser(User request, String loggedUserName) {
         Integer id = request.getId();
 
@@ -81,6 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true) //for performance
     public List<User> getAllUsers() {
         log.info("Started get all users");
         return userRepository.findAll().stream()
@@ -89,6 +96,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true) //for performance
     public User getUserById(Integer userId) {
         log.info("Started get user with id = " + userId);
 
@@ -101,6 +109,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Integer id) {
         log.info("Started delete user with id = " + id);
 

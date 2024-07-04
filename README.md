@@ -1,8 +1,9 @@
 # Spring Boot User Management API and PostgreSQL (Dockerized)
 
 Simple Spring boot application with the following characteristics:
-- **PostreSQL image** available in docker container (therefore H2 not used)
-- Standard **REST Controller** - **Service** - **Repository** pattern to separate concerns
+- REST API with User Table, supports idempotent GET, PUT, POST, DELETE operations
+- **PostreSQL image** available in docker container
+- Standard **REST Controller** - **Service** - **Repository** pattern for separation of concerns
 - Basic Authentization used by Spring Security
 - API errors in RFC-7807 format
 - OpenAPI documentation at http://localhost:8080/swagger-ui/index.html#/
@@ -78,10 +79,12 @@ docker-compose up postgres-db
 
 Todo:
 - Paginated get all users
+- username as ID?
 - Consider H2 regardles, so application can be ran without postgres running
 - Use version variables in properties file to make sure no new version breaks the project
 - more tests...
 - DB not up test to fail early(Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided))
 - use BCryptPasswordEncoderTests instead of the base class to be testable
 - Also look into TestContainers to run dockerized DB automaticaly on test run
+- DAO...
 - etc...

@@ -60,8 +60,7 @@ public class UserServiceSupport {
     }
 
     protected void encodePassword(User user) {
-        String encodedPassword = passwordEncoder
-                .encode(user.getPassword());
+        String encodedPassword = passwordEncoder.encode(user.getPassword());
 
         user.setPassword(encodedPassword);
     }

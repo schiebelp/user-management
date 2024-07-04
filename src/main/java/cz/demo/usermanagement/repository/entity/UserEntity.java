@@ -2,11 +2,12 @@ package cz.demo.usermanagement.repository.entity;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**
  * DB class of User
+ *
+ * nice to have: roles
  */
 @Data
 @Builder
@@ -16,21 +17,20 @@ import lombok.*;
 @Table(name="\"User\"") // reserved keyword in postgre
 public class UserEntity {
 
-    // atributy id a name, username, password, role
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull
+    @Column(nullable = false, unique = true)
     private String userName;
 
-    @NotNull
+    @Column(nullable = false)
     private String password;
 
-    @NotNull
+    @Column
     private String firstName;
 
-    @NotNull
+    @Column
     private String lastName;
 
     @ToString.Include(name = "password")

@@ -2,14 +2,13 @@ package cz.demo.usermanagement.service;
 
 
 import cz.demo.usermanagement.exception.UnauthorizedException;
+import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
+import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.repository.UserRepository;
 import cz.demo.usermanagement.repository.entity.UserEntity;
 import cz.demo.usermanagement.service.domain.User;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,6 +34,9 @@ class UserServiceIntTest {
 
     @Autowired
     private UserServiceImpl tested;
+
+    @Autowired
+    private UserMapper userMapper;
 
     private UserEntity existingUser1;
     private UserEntity existingUser2;
@@ -62,171 +64,210 @@ class UserServiceIntTest {
         userRepository.deleteAll();
     }
 
-    @Test
-    @DisplayName("then get user by id finds user")
-    void whenUserExist_thenGetUserById_success() {
-        // given
-        Integer userId = existingUser1.getId();
 
-        // when
-        User result = tested.getUserById(userId);
+    @Nested
+    @DisplayName("Create a new user")
+    class CreateUser{
 
-        // then
-        assertAll("User by ID",
-                () -> assertThat(result.getFirstName()).isEqualTo(existingUser1.getFirstName()),
-                () -> assertThat(result.getLastName()).isEqualTo(existingUser1.getLastName()),
-                () -> assertThat(result.getUserName()).isEqualTo(existingUser1.getUserName())
-        );
-    }
+        @Test
+        @DisplayName("will save succesfully new user")
+        void givenUser_whenCreateUser_thenIsCreated() {
+            // given
+            User newUser = User.builder()
+                    .firstName("Jame")
+                    .lastName("King")
+                    .userName("jamesking")
+                    .password("password6254").build();
 
-    @Test
-    @DisplayName("non existing user throws exception")
-    void whenUserDontExist_thenGetUserById_throwsException() {
+            // when
+            User user = tested.createUser(newUser);
 
-        assertThrows(UserNotFoundException.class, () -> tested.getUserById(-1));
-    }
+            // then
+            assertAll("User by ID",
+                    () -> assertThat(user.getId()).isPositive(),
+                    () -> assertThat(user.getFirstName()).isEqualTo(newUser.getFirstName()),
+                    () -> assertThat(user.getLastName()).isEqualTo(newUser.getLastName()),
+                    () -> assertThat(user.getUserName()).isEqualTo(newUser.getUserName()),
+                    () -> assertThat(user.getPassword()).isNotBlank()// Assuming password is hashed and cannot be directly compared
+            );
 
-    @Test
-    @DisplayName("then get all users returns all 2 users")
-    void whenUsersExist_thenGetAllUsers_finds() {
-        // Act
-        List<User> users = tested.getAllUsers();
+            Optional<UserEntity> result = userRepository.findById(user.getId());
+            assertThat(result).isPresent().get()
+                    .satisfies(r -> assertAll("Create User Result",
+                            () -> assertThat(r.getFirstName()).isEqualTo(newUser.getFirstName()),
+                            () -> assertThat(r.getLastName()).isEqualTo(newUser.getLastName()),
+                            () -> assertThat(r.getUserName()).isEqualTo(newUser.getUserName()),
+                            () -> assertThat(r.getPassword()).isNotBlank() // Assuming password is hashed and cannot be directly compared
+                    ));
 
-        // Assert
-        assertThat(users).hasSize(2);
+        }
 
-        assertThat(users)
-                .extracting(User::getUserName)
-                .containsExactlyInAnyOrder(existingUser1.getUserName(), existingUser2.getUserName() );
-    }
+        @Test
+        @DisplayName("will throw exception if user already exists")
+        void givenExistingUser_whenCreateUser_thenUserExistException() {
 
-    @Test
-    @DisplayName("then create user saves new user")
-    void whenNewUser_thenCreateUser_success() {
-        // given
-        String firstName = "firstName";
-        String lastName = "lastName";
-        String userName = "userName";
-        String password = "password";
+            User user = userMapper.toUser(existingUser1);
+            assertThrows(UserAlreadyExistsException.class, () -> tested.createUser(user));
 
-        // when
-        User user = tested.createUser(
-                User.builder()
-                        .firstName(firstName)
-                        .lastName(lastName)
-                        .userName(userName)
-                        .password(password).build()
-        );
-
-        // then
-        Optional<UserEntity> result = userRepository.findById(user.getId());
-        assertThat(result).isPresent().get()
-                .satisfies(r -> assertAll("Create User Result",
-                        () -> assertThat(r.getFirstName()).isEqualTo(firstName),
-                        () -> assertThat(r.getLastName()).isEqualTo(lastName),
-                        () -> assertThat(r.getUserName()).isEqualTo(userName),
-                        () -> assertThat(r.getPassword()).isNotBlank()
-                ));
+        }
 
     }
 
-    @Test
-    @DisplayName("then owner can update any field")
-    void whenAllFieldsUpdatedByOwner_thenUpdateUser_success() {
-        // given
-        Integer userId = existingUser1.getId();
+    @Nested
+    @DisplayName("Get a user by ID")
+    class GetUserById{
 
-        String newFirstName = "newFirstName";
-        String newLastName = "newLastName";
-        String newUserName = "newUserName";
-        String newPassword = "newPassword";
+        @Test
+        @DisplayName("then get user by id finds user")
+        void whenUserExist_thenGetUserById_success() {
+            // given
+            Integer userId = existingUser1.getId();
 
-        // when
-        tested.updateUser(User.builder()
-                        .id(userId)
-                        .firstName(newFirstName)
-                        .lastName(newLastName)
-                        .userName(newUserName)
-                        .password(newPassword).build()
-                , existingUser1.getUserName()
-        );
+            // when
+            User result = tested.getUserById(userId);
 
-        // then
-        Optional<UserEntity> result = userRepository.findById(userId);
-        assertThat(result).isPresent().get()
-                .satisfies(r -> assertAll("Update User Result",
-                        () -> assertThat(r.getFirstName()).isEqualTo(newFirstName),
-                        () -> assertThat(r.getLastName()).isEqualTo(newLastName),
-                        () -> assertThat(r.getUserName()).isEqualTo(newUserName),
-                        () -> assertThat(r.getPassword()).isNotBlank()
-                ));
+            // then
+            assertAll("User by ID",
+                    () -> assertThat(result.getFirstName()).isEqualTo(existingUser1.getFirstName()),
+                    () -> assertThat(result.getLastName()).isEqualTo(existingUser1.getLastName()),
+                    () -> assertThat(result.getUserName()).isEqualTo(existingUser1.getUserName())
+            );
+        }
+
+        @Test
+        @DisplayName("non existing user throws exception")
+        void whenUserDontExist_thenGetUserById_throwsException() {
+
+            assertThrows(UserNotFoundException.class, () -> tested.getUserById(-1));
+        }
 
     }
 
-    @Test
-    @DisplayName("change user name by owner possible")
-    void whenExistingUserChangeUserName_thenUpdateUser_success() {
-        // given
-        Integer userId = existingUser1.getId();
+    @Nested
+    @DisplayName("Get all users")
+    class GetAllUsers{
 
-        String newUserName = "newUserName";
+        @Test
+        @DisplayName("returns all 2 users")
+        void whenUsersExist_thenGetAllUsers_finds() {
+            // Act
+            List<User> users = tested.getAllUsers();
 
-        // when
-        tested.updateUser(User.builder()
-                        .id(userId)
-                        .userName(newUserName).build()
-                , existingUser1.getUserName()
-        );
+            // Assert
+            assertThat(users).hasSize(2);
 
-        // then
-        Optional<UserEntity> result = userRepository.findById(userId);
-        assertThat(result).isPresent().get()
-                .satisfies(r -> assertAll("Update User Result",
-                        () -> assertThat(r.getUserName()).isEqualTo(newUserName),
-                        () -> assertThat(r.getFirstName()).isEqualTo(existingUser1.getFirstName()),
-                        () -> assertThat(r.getLastName()).isEqualTo(existingUser1.getLastName()),
-                        () -> assertThat(r.getPassword()).isEqualTo(existingUser1.getPassword())
-                ));
+            assertThat(users)
+                    .extracting(User::getUserName)
+                    .containsExactlyInAnyOrder(existingUser1.getUserName(), existingUser2.getUserName() );
+        }
 
     }
 
-    @Test
-    @DisplayName("non owner update user throws exception")
-    void whenIrrelevantUser_thenUpdateUser_fail() {
+    @Nested
+    @DisplayName("Delete a user by ID")
+    class DeleteUser{
 
-        var badUser = "badUser";
+        @Test
+        @DisplayName("then delete user by id removes user")
+        void whenExistingUser_thenDeleteById_success() {
 
-        var user = User.builder()
-                .id(existingUser1.getId())
-                .userName(existingUser1.getUserName())
-                .build();
+            var id= existingUser1.getId();
 
-        assertThrows(
-                UnauthorizedException.class,
-                () -> tested.updateUser(user,badUser));
+            // when
+            tested.deleteUser(id);
 
+            // then
+            assertThat(userRepository.findById(id))
+                    .isNotPresent();
+        }
+
+        @Test
+        @DisplayName("non existing user throws exception")
+        void whenNonExistingUser_thenDeleteById_throwsException() {
+
+            assertThrows(UserNotFoundException.class, () -> tested.deleteUser(999));
+
+        }
 
     }
 
-    @Test
-    @DisplayName("then delete by id 1 deletes user 1")
-    void whenExistingUser_thenDeleteById_success() {
+    @Nested
+    @DisplayName("Update an existing user")
+    class UpdateUser{
 
-        var id= existingUser1.getId();
+        @Test
+        @DisplayName("owner can update any field")
+        void whenAllFieldsUpdatedByOwner_thenUpdateUser_success() {
+            // given
+            Integer userId = existingUser1.getId();
+            String ownerName = existingUser1.getUserName();
 
-        // when
-        tested.deleteUser(id);
+            User update = User.builder()
+                    .id(userId)
+                    .firstName("newFirstName")
+                    .lastName("newLastName")
+                    .userName("newUserName")
+                    .password("newPassword").build();
 
-        // then
-        assertThat(userRepository.findById(id))
-                .isNotPresent();
-    }
+            // when
+            tested.updateUser(update, ownerName);
 
-    @Test
-    @DisplayName("non existing user throws exception on delete")
-    void whenNonExistingUser_thenDeleteById_throwsException() {
+            // then
+            Optional<UserEntity> result = userRepository.findById(userId);
+            assertThat(result).isPresent().get()
+                    .satisfies(r -> assertAll("Update User Result",
+                            () -> assertThat(r.getFirstName()).isEqualTo(update.getFirstName()),
+                            () -> assertThat(r.getLastName()).isEqualTo(update.getLastName()),
+                            () -> assertThat(r.getUserName()).isEqualTo(update.getUserName()),
+                            () -> assertThat(r.getPassword()).isNotBlank()
+                    ));
 
-        assertThrows(UserNotFoundException.class, () -> tested.deleteUser(999));
+        }
+
+        @Test
+        @DisplayName("change only user name by owner possible")
+        void whenExistingUserChangeUserName_thenUpdateUser_success() {
+            // given
+            Integer userId = existingUser1.getId();
+
+            String newUserName = "newUserName";
+
+            // when
+            tested.updateUser(User.builder()
+                            .id(userId)
+                            .userName(newUserName).build()
+                    , existingUser1.getUserName()
+            );
+
+            // then
+            Optional<UserEntity> result = userRepository.findById(userId);
+            assertThat(result).isPresent().get()
+                    .satisfies(r -> assertAll("Update User Result",
+                            () -> assertThat(r.getUserName()).isEqualTo(newUserName),
+                            () -> assertThat(r.getFirstName()).isEqualTo(existingUser1.getFirstName()),
+                            () -> assertThat(r.getLastName()).isEqualTo(existingUser1.getLastName()),
+                            () -> assertThat(r.getPassword()).isEqualTo(existingUser1.getPassword())
+                    ));
+
+        }
+
+        @Test
+        @DisplayName("non owner update user unauthorized error")
+        void whenIrrelevantUser_thenUpdateUser_fail() {
+
+            var badUser = "badUser";
+
+            var user = User.builder()
+                    .id(existingUser1.getId())
+                    .userName(existingUser1.getUserName())
+                    .build();
+
+            assertThrows(
+                    UnauthorizedException.class,
+                    () -> tested.updateUser(user,badUser));
+
+
+        }
 
     }
 
