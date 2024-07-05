@@ -1,18 +1,17 @@
 package cz.demo.usermanagement.service;
 
 
+import cz.demo.usermanagement.AbstractIntegrationTest;
 import cz.demo.usermanagement.exception.UnauthorizedException;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
-import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.repository.UserRepository;
-import cz.demo.usermanagement.repository.entity.UserEntity;
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.model.UserEntity;
+import cz.demo.usermanagement.model.User;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,9 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
 @DisplayName("Given user service with 2 users")
-class UserServiceIntTest {
+class UserServiceIntTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
@@ -34,9 +32,6 @@ class UserServiceIntTest {
 
     @Autowired
     private UserServiceImpl tested;
-
-    @Autowired
-    private UserMapper userMapper;
 
     private UserEntity existingUser1;
     private UserEntity existingUser2;

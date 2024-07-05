@@ -1,12 +1,12 @@
 package cz.demo.usermanagement.repository;
 
-import cz.demo.usermanagement.repository.entity.UserEntity;
+import cz.demo.usermanagement.AbstractIntegrationTest;
+import cz.demo.usermanagement.model.UserEntity;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,10 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace= Replace.NONE)
-@ActiveProfiles("test")
-@Tag("integration-test")
 @DisplayName("Given user repository with 2 users")
-class UserEntityRepositoryIntTest {
+class UserEntityRepositoryIntTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserRepository tested;
@@ -31,18 +29,13 @@ class UserEntityRepositoryIntTest {
 
     @BeforeEach
     public void setUp() {
-        existingUser1 = UserEntity.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .userName("johndoe")
-                .password("password123")
-                .build();
-        existingUser2 = UserEntity.builder()
-                .firstName("Jane")
-                .lastName("Smith")
-                .userName("janesmith")
-                .password("password456")
-                .build();
+
+        // Create 2 users
+        // 1. John Doe
+        // 2. Jane Smith
+
+        existingUser1 = createUserEntiy(null, "John", "Doe", "johndoe", "password123");
+        existingUser2 = createUserEntiy(null, "Jane", "Smith", "janesmith", "password456");
 
         existingUsers = Arrays.asList(existingUser1, existingUser2);
 
@@ -68,7 +61,7 @@ class UserEntityRepositoryIntTest {
     class Save{
 
         @Test
-        @DisplayName("new success")
+        @DisplayName("new means success")
         void whenNewUser_thenSave_success() {
 
             // given
@@ -94,7 +87,7 @@ class UserEntityRepositoryIntTest {
         }
 
         @Test
-        @DisplayName("new password success")
+        @DisplayName("new password means success")
         void whenNewPassword_thenSave_success() {
 
             // given

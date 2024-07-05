@@ -8,7 +8,7 @@ import cz.demo.usermanagement.controller.dto.SaveUserRequest;
 import cz.demo.usermanagement.exception.UserServerException;
 import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.service.UserService;
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.model.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

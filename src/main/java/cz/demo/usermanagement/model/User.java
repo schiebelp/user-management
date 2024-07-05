@@ -1,4 +1,4 @@
-package cz.demo.usermanagement.service.domain;
+package cz.demo.usermanagement.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

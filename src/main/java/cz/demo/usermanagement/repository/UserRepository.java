@@ -1,6 +1,6 @@
 package cz.demo.usermanagement.repository;
 
-import cz.demo.usermanagement.repository.entity.UserEntity;
+import cz.demo.usermanagement.model.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

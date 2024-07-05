@@ -1,7 +1,7 @@
 package cz.demo.usermanagement.service;
 
-import cz.demo.usermanagement.repository.entity.UserEntity;
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.model.UserEntity;
+import cz.demo.usermanagement.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

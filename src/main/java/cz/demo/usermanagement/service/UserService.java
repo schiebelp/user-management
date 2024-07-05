@@ -1,6 +1,6 @@
 package cz.demo.usermanagement.service;
 
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.model.User;
 
 import java.util.List;
 

@@ -1,8 +1,10 @@
-package cz.demo.usermanagement.repository.entity;
+package cz.demo.usermanagement.model;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.validator.constraints.Length;
 
 /**
  * DB class of User
@@ -10,10 +12,8 @@ import lombok.*;
  * nice to have: roles
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
+@Builder
 @Table(name="\"User\"") // reserved keyword in postgre
 public class UserEntity {
 
@@ -27,10 +27,12 @@ public class UserEntity {
     @Column(nullable = false)
     private String password;
 
-    @Column
+    @NotNull
+    @Length(max = 50)
     private String firstName;
 
-    @Column
+    @NotNull
+    @Length(max = 255)
     private String lastName;
 
     @ToString.Include(name = "password")

@@ -1,15 +1,17 @@
 package cz.demo.usermanagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.demo.usermanagement.AbstractTest;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.service.UserService;
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.model.User;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,10 +36,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Web layer tests with JUnit 5 and Mockito
  */
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 @AutoConfigureMockMvc
 @WithMockUser(username = "admin", password = "password")
-class UserControllerImplTest {
+class UserControllerImplTest extends AbstractTest {
 
     private static final String API_USERS = "/api/users";
     private static final String USERNAME_IS_MANDATORY = "[Username is mandatory]";
@@ -369,16 +371,6 @@ class UserControllerImplTest {
                 .andExpect(jsonPath("$.status", is(HttpStatus.NOT_FOUND.value())))
                 .andExpect(jsonPath("$.detail", is(id)))
                 .andExpect(jsonPath("$.instance", is(API_USERS + "/" + id)));
-    }
-
-    private User createUser(int id, String userName, String password, String firstName, String lastName) {
-        return User.builder()
-                .id(id)
-                .userName(userName)
-                .password(password)
-                .firstName(firstName)
-                .lastName(lastName)
-                .build();
     }
 
     private void expectSuccess(ResultActions response, ResultMatcher matcher, User user) throws Exception {

@@ -4,7 +4,7 @@ package cz.demo.usermanagement.service;
 
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.repository.UserRepository;
-import cz.demo.usermanagement.repository.entity.UserEntity;
+import cz.demo.usermanagement.model.UserEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

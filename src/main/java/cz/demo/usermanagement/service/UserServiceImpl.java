@@ -6,8 +6,8 @@ import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.repository.UserRepository;
-import cz.demo.usermanagement.repository.entity.UserEntity;
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.model.UserEntity;
+import cz.demo.usermanagement.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
 
         // A way to preserve existing data - ignore null/empty values
         if (!userServiceSupport.updateIfNotNullAndChanged(request, existingUser)){
-            log.info("Nothing to change at user with id = " + id);
+            log.info("Nothing to change on user with id = " + id);
             return userMapper.toUser(existingUser);
         }
 
