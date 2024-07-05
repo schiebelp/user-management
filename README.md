@@ -44,6 +44,8 @@ docker ps
   - Admin: username = admin / password = password
   - User: Saved in DB
 
+![open-api.png](open-api.png)
+
 ### Notes:
 
 #### Run all Tests
