@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -99,23 +101,26 @@ public class UserController implements UserApi {
     @Override
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable(value = "id") Integer id,
-                                           @Valid @RequestBody UpdateUserRequest request,
-                                           Principal principal) {
-        log.info("Started update user with id {}, request {}", id, request);
+                                                   @Valid @RequestBody SaveUserRequest request,
+                                                   @AuthenticationPrincipal UserDetails userDetails) {
+        log.info("Started update user with id {}, request {}, userDetails {}", id, request, userDetails);
 
-        if (principal == null) {
-            log.error("Principal not available");
-            throw new UserServerException("Principal not available"); // should never happen
-        }
+        User updated = userService.updateUser(userMapper.toUser(id, request), userDetails.getUsername());
 
-        String loggedUserName = principal.getName();
-        log.info("Logged user name = " + loggedUserName);
-        if (loggedUserName == null) {
-            log.error("Missing logged user name");
-            throw new UserServerException("Missing logged user name"); // should never happen
-        }
+        return ResponseEntity.ok(userMapper.toUserResponse(updated));
+    }
 
-        User updated = userService.updateUser(userMapper.toUser(id, request), loggedUserName);
+    /**
+     * PATCH /users/{id} : Partially update an existing user
+     */
+    @Override
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserResponse> partiallyUpdateUser(@PathVariable(value = "id") Integer id,
+                                                   @Valid @RequestBody UpdateUserRequest request,
+                                                   @AuthenticationPrincipal UserDetails userDetails) {
+        log.info("Started partially update user with id {}, request {}, userDetails {}", id, request, userDetails);
+
+        User updated = userService.updateUser(userMapper.toUser(id, request), userDetails.getUsername());
 
         return ResponseEntity.ok(userMapper.toUserResponse(updated));
     }

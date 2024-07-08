@@ -22,6 +22,7 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -40,8 +41,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerImplTest {
 
     private static final String API_USERS = "/api/users";
-    private static final String USERNAME_IS_MANDATORY = "[Username is mandatory]";
-    private static final String PASSWORD_IS_MANDATORY = "[Password is mandatory]";
     private static final String ABOUT_BLANK = "about:blank";
 
     @Autowired
@@ -56,7 +55,7 @@ class UserControllerImplTest {
     @Captor
     private ArgumentCaptor<User> userArgumentCaptor;
 
-    User user;
+    private User user;
 
     @BeforeEach
     public void setup(){
@@ -99,31 +98,32 @@ class UserControllerImplTest {
         }
 
         @Test
-        @DisplayName("400 Bad Request: Password is mandatory")
+        @DisplayName("400 Bad Request: User Name, Password is mandatory") //must not be blank
         void givenNoPassword_whenPost_thenMandatoryErr() throws Exception{
             // given
+            user.setUserName(null);
             user.setPassword(null);
 
             // when
             ResultActions response = performPost(user);
 
             // then
-            expectBadRequest(response, PASSWORD_IS_MANDATORY, API_USERS);
+            expectBadRequest(response, API_USERS, "User Name is mandatory", "Password is mandatory");
 
             verifyNoInteractions(userService);
         }
 
         @Test
-        @DisplayName("400 Bad Request: Name is mandatory")
-        void givenNoUserName_whenPost_thenMandatoryErr() throws Exception{
+        @DisplayName("400 Bad Request: User Name size must be between ...")
+        void givenShortUserName_whenPost_thenSizeErr() throws Exception{
             // given
-            user.setUserName(null);
+            user.setUserName("short");
 
             // when
             ResultActions response = performPost(user);
 
             // then
-            expectBadRequest(response, USERNAME_IS_MANDATORY, API_USERS);
+            expectBadRequest(response, API_USERS, "User Name size must be between 6 and 254");
 
             verifyNoInteractions(userService);
         }
@@ -178,9 +178,9 @@ class UserControllerImplTest {
             ResultActions response = performGetById(id);
 
             // then
-            expectBadRequest(response,
-                    "Invalid 'id' supplied. Should be a valid 'Integer' and 'invalidId' isn't!",
-                    API_USERS + "/"+ id);
+            expectBadRequest(response, API_USERS + "/"+ id,
+                    "Invalid 'id' supplied. Should be a valid 'Integer' and 'invalidId' isn't!"
+                    );
 
             verifyNoInteractions(userService);
         }
@@ -252,26 +252,130 @@ class UserControllerImplTest {
     @DisplayName("PUT /users/{id} : Update an existing user")
     class UpdateUser {
 
+
         @Test
         @DisplayName("200 OK: User updated")
-        void givenValidUser_whenPut_thenUpdated() throws Exception {
+        void givenFullUser_whenPut_thenUpdated() throws Exception {
             // given
             var id = user.getId();
-            var newUserName = "newUserName"; // <---the update
-            var loggedUserName = "admin";
+            var request = createUser(user.getId(), "putUsername", "putPassword", "putFirstname", "putLastName");
 
-            var request = User.builder().id(id).userName(newUserName).build();
-            var response = createUser(id, newUserName, user.getPassword(), user.getFirstName(), user.getLastName());
-
-            given(userService.updateUser(any(User.class), anyString())).willReturn(response);
+            given(userService.updateUser(any(User.class), anyString())).willReturn(request);
 
             // when
             ResultActions result = performPut(id, request);
 
             // then
+            expectSuccess(result, status().isOk(), request);
+
+            verifyUpdatedUser("admin", request);
+
+        }
+
+        @Test
+        @DisplayName("400 Bad Request: Password is mandatory")
+        void givenNoPassword_whenPut_thenNoChange() throws Exception {
+            // given
+            user.setPassword(null);
+
+            // when
+            ResultActions response = performPut(user.getId(), user);
+
+            // then
+            expectBadRequest(response, API_USERS + "/" + user.getId(), "Password is mandatory");
+
+            verifyNoInteractions(userService);
+        }
+
+        @Test
+        @DisplayName("400 Bad Request: User Name is mandatory")
+        void givenNoUserName_whenPut_thenNoChange() throws Exception {
+            // given
+            user.setUserName(null);
+
+            // when
+            ResultActions response = performPut(user.getId(), user);
+
+            // then
+            expectBadRequest(response, API_USERS + "/" + user.getId(), "User Name is mandatory");
+
+            verifyNoInteractions(userService);
+        }
+
+        @Test
+        @DisplayName("400 Bad Request: User Name size must be between ...")
+        void givenShortUserName_whenPut_thenSizeErr() throws Exception{
+            // given
+            user.setUserName("short");
+
+            // when
+            ResultActions response = performPut(user.getId(), user);
+
+            // then
+            expectBadRequest(response, API_USERS + "/" + user.getId(), "User Name size must be between 6 and 254");
+
+            verifyNoInteractions(userService);
+        }
+
+
+        @Test
+        @DisplayName("400 Bad Request: Password size must be between ...")
+        void givenShortPassword_whenPut_thenSizeErr() throws Exception{
+            // given
+            user.setPassword("short");
+
+            // when
+            ResultActions response = performPut(user.getId(), user);
+
+            // then
+            expectBadRequest(response, API_USERS + "/" + user.getId(), "Password size must be between 8 and 72" );
+
+            verifyNoInteractions(userService);
+        }
+
+        @Test
+        @DisplayName("404 Not Found: User not found with given id")
+        void givenNonExistingId_whenPut_thenNotFoundException() throws Exception {
+            // given
+            var nonExistId = 99;
+            user.setId(nonExistId);
+
+            given(userService.updateUser(any(User.class), anyString()))
+                    .willThrow(new UserNotFoundException(String.valueOf(nonExistId)));
+
+            // when
+            ResultActions response = performPut(nonExistId, user);
+
+            // then
+            expectNotFound(response, String.valueOf(nonExistId));
+
+            verifyUpdatedUser("admin", user);
+        }
+    }
+
+    @Nested
+    @DisplayName("PATCH /users/{id} : Partially update an existing user")
+    class PartiallyUpdateUser {
+
+        @Test
+        @DisplayName("200 OK: User partialy updated")
+        void givenValidUser_whenPatch_thenUpdated() throws Exception {
+            // given
+            var id = user.getId();
+            var newUserName = "newUserName"; // <---the update
+
+            var request = User.builder().id(id).userName( "newUserName").build();
+            var response = createUser(id, newUserName, user.getPassword(), user.getFirstName(), user.getLastName());
+
+            given(userService.updateUser(any(User.class), anyString())).willReturn(response);
+
+            // when
+            ResultActions result = performPatch(id, request);
+
+            // then
             expectSuccess(result, status().isOk(), response);
 
-            verify(userService).updateUser(userArgumentCaptor.capture(), eq(loggedUserName));
+            verify(userService).updateUser(userArgumentCaptor.capture(), eq("admin"));
 
             User captured = userArgumentCaptor.getValue();
             assertAll("Updated User",
@@ -283,29 +387,56 @@ class UserControllerImplTest {
 
         @Test
         @DisplayName("200 OK: No change on empty")
-        void givenNoUsername_whenPut_thenNoChange() throws Exception {
+        void givenNoUsername_whenPatch_thenNoChange() throws Exception {
             // given
-            var loggedUserName = "admin";
             var request = createUser(user.getId(), null, user.getPassword(), user.getFirstName(), user.getLastName());
 
             given(userService.updateUser(any(User.class), anyString())).willReturn(user);
 
             // when
-            ResultActions result = performPut(user.getId(), request);
+            ResultActions result = performPatch(user.getId(), request);
 
             // then
             expectSuccess(result, status().isOk(), user);
 
-            verifyUpdatedUser(loggedUserName, user.getId(), null, user.getPassword(),
-                    user.getFirstName(), user.getLastName());
+            verifyUpdatedUser("admin", request);
+        }
+
+        @Test
+        @DisplayName("400 Bad Request: User Name size must be between ...")
+        void givenShortUserName_whenPatch_thenSizeErr() throws Exception{
+            // given
+            user.setUserName("short");
+
+            // when
+            ResultActions response = performPatch(user.getId(), user);
+
+            // then
+            expectBadRequest(response, API_USERS + "/" + user.getId(), "User Name size must be between 6 and 254");
+
+            verifyNoInteractions(userService);
+        }
+
+        @Test
+        @DisplayName("400 Bad Request: Password size must be between ...")
+        void givenShortPassword_whenPatch_thenSizeErr() throws Exception{
+            // given
+            user.setPassword("short");
+
+            // when
+            ResultActions response = performPatch(user.getId(), user);
+
+            // then
+            expectBadRequest(response, API_USERS + "/" + user.getId(), "Password size must be between 8 and 72");
+
+            verifyNoInteractions(userService);
         }
 
         @Test
         @DisplayName("404 Not Found: User not found with given id")
-        void givenNonExistingId_whenPut_thenNotFoundException() throws Exception {
+        void givenNonExistingId_whenPatch_thenNotFoundException() throws Exception {
             // given
             var wrongId = 99;
-            var loggedUserName = "admin";
 
             var request = createUser(wrongId, user.getUserName(), user.getPassword(), user.getFirstName(), user.getLastName());
 
@@ -313,13 +444,12 @@ class UserControllerImplTest {
                     .willThrow(new UserNotFoundException(String.valueOf(wrongId)));
 
             // when
-            ResultActions response = performPut(wrongId, request);
+            ResultActions response = performPatch(wrongId, request);
 
             // then
             expectNotFound(response, String.valueOf(wrongId));
 
-            verifyUpdatedUser(loggedUserName, wrongId, user.getUserName(), user.getPassword(),
-                    user.getFirstName(), user.getLastName());
+            verifyUpdatedUser("admin", request);
         }
     }
 
@@ -351,14 +481,26 @@ class UserControllerImplTest {
                 .content(objectMapper.writeValueAsString(request)));
     }
 
-    private void expectBadRequest(ResultActions response, String errorMessage, String path) throws Exception {
+    private ResultActions performPatch(int id, User request) throws Exception {
+        return mvc.perform(patch(API_USERS + "/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+    }
+
+    private void expectBadRequest(ResultActions response, String path, String ... errorMessages) throws Exception {
         response.andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.type", is(ABOUT_BLANK)))
                 .andExpect(jsonPath("$.title", is(HttpStatus.BAD_REQUEST.getReasonPhrase())))
                 .andExpect(jsonPath("$.status", is(HttpStatus.BAD_REQUEST.value())))
-                .andExpect(jsonPath("$.detail", is(errorMessage)))
                 .andExpect(jsonPath("$.instance", is(path)));
+
+
+        // Check if any of the error messages are contained in the $.detail field
+        for (String errorMessage : errorMessages) {
+            response.andExpect(jsonPath("$.detail", containsString(errorMessage)));
+        }
+
     }
 
     private void expectNotFound(ResultActions response, String id) throws Exception {
@@ -391,18 +533,17 @@ class UserControllerImplTest {
                  // password hidden!
     }
 
-    private void verifyUpdatedUser(String loggedUserName, int id, String userName, String password,
-            String firstName, String lastName) {
+    private void verifyUpdatedUser(String loggedUserName, User user) {
         verify(userService).updateUser(userArgumentCaptor.capture(), eq(loggedUserName));
 
         User captured = userArgumentCaptor.getValue();
 
         assertAll("Updated User",
-                () -> assertThat(captured.getId()).isEqualTo(id),
-                () -> assertThat(captured.getUserName()).isEqualTo(userName),
-                () -> assertThat(captured.getPassword()).isEqualTo(password),
-                () -> assertThat(captured.getFirstName()).isEqualTo(firstName),
-                () -> assertThat(captured.getLastName()).isEqualTo(lastName)
+                () -> assertThat(captured.getId()).isEqualTo(user.getId()),
+                () -> assertThat(captured.getUserName()).isEqualTo(user.getUserName()),
+                () -> assertThat(captured.getPassword()).isEqualTo(user.getPassword()),
+                () -> assertThat(captured.getFirstName()).isEqualTo(user.getFirstName()),
+                () -> assertThat(captured.getLastName()).isEqualTo(user.getLastName())
         );
     }
 

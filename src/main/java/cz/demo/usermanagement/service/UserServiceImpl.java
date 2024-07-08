@@ -11,6 +11,7 @@ import cz.demo.usermanagement.service.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +35,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final UserServiceSupport userServiceSupport;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -46,7 +47,7 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User already registered with given userName "+request.getUserName());
         }
 
-        userServiceSupport.encodePassword(request);
+        encodePassword(request);
 
         UserEntity userEntity = userRepository.save(userMapper.toUserEntity(request));
 
@@ -73,11 +74,7 @@ public class UserServiceImpl implements UserService {
 
         }
 
-        // A way to preserve existing data - ignore null/empty values
-        if (!userServiceSupport.updateIfNotNullAndChanged(request, existingUser)){
-            log.info("Nothing to change at user with id = " + id);
-            return userMapper.toUser(existingUser);
-        }
+        userMapper.updateEntity(request, existingUser);
 
         UserEntity saved = userRepository.save(existingUser);
 
@@ -122,6 +119,10 @@ public class UserServiceImpl implements UserService {
         log.info("Succesfuly deleted user with id = " + id);
     }
 
+    protected void encodePassword(User user) {
+        String encodedPassword = passwordEncoder.encode(user.getPassword());
 
+        user.setPassword(encodedPassword);
+    }
 
 }

@@ -7,9 +7,7 @@ import cz.demo.usermanagement.controller.dto.UserResponse;
 import cz.demo.usermanagement.controller.dto.SaveUserRequest;
 import cz.demo.usermanagement.repository.entity.UserEntity;
 import cz.demo.usermanagement.service.domain.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.NullValueCheckStrategy;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 
 /**
  * Mapstruct for conversion between Controller - Service - Repository
@@ -55,4 +53,13 @@ public interface UserMapper {
      * @return User
      */
     User toUser(UserEntity user);
+
+    /**
+     * Update Entity from user
+     * @param user from
+     * @param userEntity to
+     */
+    @Mapping(target = "id", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntity(User user, @MappingTarget UserEntity userEntity);
 }

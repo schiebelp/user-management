@@ -1,6 +1,4 @@
 spring:
-#  mvc:
-#    problemdetails: enabled
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/api_db
@@ -13,7 +11,9 @@ spring:
     username: admin
     password: $2a$10$JF.GmZ5gwEJKPpLwGa5FN.L/.ir/KzEt9tTqnvriUJmEyb1BVRTi6
 
-springdoc:
+  messages:
+    basename: messages
+
   api-docs:
     path: /v3/api-docs
   swagger-ui:

@@ -2,6 +2,7 @@ package cz.demo.usermanagement.repository.entity;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 /**
@@ -19,12 +20,15 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(updatable = false, nullable = false)
+    private Integer id; // todo OWASP recommends using complex identifiers as part of a defence in depth strategy
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
+    @NotBlank
     private String userName;
 
-    @Column(nullable = false)
+    @Column
+    @NotBlank
     private String password;
 
     @Column

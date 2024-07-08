@@ -14,7 +14,6 @@ Simple Spring boot application with the following characteristics:
 ## To run local Spring boot and PostgreSql image:
 
 1) Start docker daemon
-
 2) Start PostreSQL Image And Springboot
 ``` bash
 docker-compose up -d postgres-db && ./gradlew bootRun
@@ -24,12 +23,12 @@ docker-compose up -d postgres-db && ./gradlew bootRun
 
 ## To Run dockerize Spring Boot and PostgreSql images:
 
-1) Please run
+1) Start docker daemon
+2) Run both images
 ``` bash
 docker-compose up
 ```
-
-2) Application REST API is available at http://localhost:8080/users
+3) Application REST API is available at http://localhost:8080/users
 
 To check details like ports, etc. run
 ``` bash

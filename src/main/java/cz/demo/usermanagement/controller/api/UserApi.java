@@ -9,9 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 /**
@@ -100,6 +100,7 @@ public interface UserApi {
             @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
     @GetMapping("/{id}")
     ResponseEntity<UserResponse> getUserById(@PathVariable("id") Integer id);
+
     /**
      * PUT /users/{id} : Update an existing user
      *
@@ -124,7 +125,34 @@ public interface UserApi {
     @PutMapping("/{id}")
     ResponseEntity<UserResponse> updateUser(
             @PathVariable("id") Integer id,
-            @Valid @RequestBody UpdateUserRequest saveUserRequest,
-            Principal principal);
+            @Valid @RequestBody SaveUserRequest saveUserRequest,
+            UserDetails userDetails);
+
+    /**
+     * PATCH /users/{id} : Partially update an existing user
+     *
+     * @param id ID of the user to update (required)
+     * @param patchUserRequest Partial user object with fields to update (required)
+     * @return User updated successfully (status code 200)
+     *         or Bad request (status code 400)
+     *         or Forbidden (status code 403)
+     *         or User not found (status code 404)
+     *         or 500 Internal Server Error (status code 500)
+     */
+    @Operation(
+            summary = "Partially update an existing user",
+            description = "Updates specified fields of a single user"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad request with description"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
+    @PatchMapping("/{id}")
+    ResponseEntity<UserResponse> partiallyUpdateUser(
+            @PathVariable("id") Integer id,
+            @Valid @RequestBody UpdateUserRequest patchUserRequest,
+            UserDetails userDetails);
 
 }
