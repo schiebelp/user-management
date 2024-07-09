@@ -1,9 +1,9 @@
-package cz.demo.usermanagement.service;
+package cz.demo.usermanagement.security;
 
 
 
 import cz.demo.usermanagement.exception.UserNotFoundException;
-import cz.demo.usermanagement.repository.UserRepository;
+import cz.demo.usermanagement.repository.UserDAO;
 import cz.demo.usermanagement.repository.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +20,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository repository;
+    private final UserDAO userDAO;
 
     @Value("${spring.admin.username}")
     private String adminUsername;
@@ -48,7 +48,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         log.info("Looking for user with username = " + username);
 
-        UserEntity existingUser = repository.findByUserName(username)
+        UserEntity existingUser = userDAO.findByUserName(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with given username " + username));
 
         log.info("Found existingUser = " + existingUser);

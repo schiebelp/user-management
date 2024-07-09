@@ -5,7 +5,7 @@ import cz.demo.usermanagement.exception.UnauthorizedException;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.mapper.UserMapper;
-import cz.demo.usermanagement.repository.UserRepository;
+import cz.demo.usermanagement.repository.UserDAO;
 import cz.demo.usermanagement.repository.entity.UserEntity;
 import cz.demo.usermanagement.service.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,23 +34,23 @@ public class UserServiceImpl implements UserService {
     @Value("${spring.admin.username}")
     private String adminUsername;
 
-    private final UserRepository userRepository;
+    private final UserDAO userDAO;
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public User createUser(User request) {
-        log.info("Started create user" + request);
+        log.info("Started create user {} in opened transaction: {} ", request, TransactionSynchronizationManager.isActualTransactionActive());
 
-        Optional<UserEntity> optionalUsers= userRepository.findByUserName(request.getUserName());
+        Optional<UserEntity> optionalUsers= userDAO.findByUserName(request.getUserName());
         if(optionalUsers.isPresent()){
             throw new UserAlreadyExistsException("User already registered with given userName "+request.getUserName());
         }
 
         encodePassword(request);
 
-        UserEntity userEntity = userRepository.save(userMapper.toUserEntity(request));
+        UserEntity userEntity = userDAO.save(userMapper.toUserEntity(request));
 
         log.info("Succesfuly created user with id = " + userEntity.getId());
 
@@ -59,11 +60,13 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User updateUser(User request, String loggedUserName) {
+        log.info("Transaction open: " + TransactionSynchronizationManager.isActualTransactionActive());
+
         Integer id = request.getId();
 
         log.info("Started update user with id = " + id);
 
-        UserEntity existingUser = userRepository.findById(id)
+        UserEntity existingUser = userDAO.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with given id " + id));
 
         // Only admin or same user can update
@@ -76,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
         userMapper.updateEntity(request, existingUser);
 
-        UserEntity saved = userRepository.save(existingUser);
+        UserEntity saved = userDAO.update(existingUser);
 
         log.info("Succesfuly updated user {} ", saved);
 
@@ -87,7 +90,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true) //for performance
     public List<User> getAllUsers() {
         log.info("Started get all users");
-        return userRepository.findAll().stream()
+        return userDAO.findAll().stream()
                 .map(userMapper::toUser)
                 .toList();
     }
@@ -97,7 +100,7 @@ public class UserServiceImpl implements UserService {
     public User getUserById(Integer userId) {
         log.info("Started get user with id = " + userId);
 
-        UserEntity user = userRepository.findById(userId)
+        UserEntity user = userDAO.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(String.valueOf(userId)));
 
         log.info("Found user = " + user);
@@ -110,9 +113,9 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Integer id) {
         log.info("Started delete user with id = " + id);
 
-        userRepository.findById(id)
+        userDAO.findById(id)
                 .ifPresentOrElse(
-                        user -> userRepository.deleteById(id), // action if value is present
+                        user -> userDAO.deleteById(id), // action if value is present
                         () -> { throw new UserNotFoundException(String.valueOf(id)); } // action if value is empty
                 );
 

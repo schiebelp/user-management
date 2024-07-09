@@ -79,13 +79,14 @@ docker-compose up postgres-db
 ```
 
 Todo:
+- Cache @Cacheable
+- HATEOAS
 - Paginated get all users
 - username as ID?
 - Consider H2 regardles, so application can be ran without postgres running
 - Use version variables in properties file to make sure no new version breaks the project
-- more tests...
 - DB not up test to fail early(Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided))
 - use BCryptPasswordEncoderTests instead of the base class to be testable
 - Also look into TestContainers to run dockerized DB automaticaly on test run
-- DAO...
+- more tests...
 - etc...

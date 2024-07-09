@@ -5,6 +5,7 @@ import cz.demo.usermanagement.exception.UnauthorizedException;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.mapper.UserMapper;
+import cz.demo.usermanagement.repository.UserDAO;
 import cz.demo.usermanagement.repository.UserRepository;
 import cz.demo.usermanagement.repository.entity.UserEntity;
 import cz.demo.usermanagement.service.domain.User;
@@ -14,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,9 +23,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Tag("integration-test")
 @DisplayName("Given user service with 2 users")
 class UserServiceIntTest {
 
+    @Autowired
+    private UserDAO userDAO;
+
+    /**
+     * For testing purposes, needed in @BeforeEach, @AfterEach as they dont support @Transactional
+     */
     @Autowired
     private UserRepository userRepository;
 
@@ -56,12 +63,14 @@ class UserServiceIntTest {
                 .password("password456")
                 .build();
 
-        userRepository.saveAll(Arrays.asList(existingUser1, existingUser2));
+        userRepository.save(existingUser1);
+        userRepository.save(existingUser2);
     }
 
     @AfterEach
     void tearDown() {
-        userRepository.deleteAll();
+        userRepository.deleteById(existingUser1.getId());
+        userRepository.deleteById(existingUser2.getId());
     }
 
 
@@ -91,7 +100,7 @@ class UserServiceIntTest {
                     () -> assertThat(user.getPassword()).isNotBlank()// Assuming password is hashed and cannot be directly compared
             );
 
-            Optional<UserEntity> result = userRepository.findById(user.getId());
+            Optional<UserEntity> result = userDAO.findById(user.getId());
             assertThat(result).isPresent().get()
                     .satisfies(r -> assertAll("Create User Result",
                             () -> assertThat(r.getFirstName()).isEqualTo(newUser.getFirstName()),
@@ -177,7 +186,7 @@ class UserServiceIntTest {
             tested.deleteUser(id);
 
             // then
-            assertThat(userRepository.findById(id))
+            assertThat(userDAO.findById(id))
                     .isNotPresent();
         }
 
@@ -213,7 +222,7 @@ class UserServiceIntTest {
             tested.updateUser(update, ownerName);
 
             // then
-            Optional<UserEntity> result = userRepository.findById(userId);
+            Optional<UserEntity> result = userDAO.findById(userId);
             assertThat(result).isPresent().get()
                     .satisfies(r -> assertAll("Update User Result",
                             () -> assertThat(r.getFirstName()).isEqualTo(update.getFirstName()),
@@ -240,7 +249,7 @@ class UserServiceIntTest {
             );
 
             // then
-            Optional<UserEntity> result = userRepository.findById(userId);
+            Optional<UserEntity> result = userDAO.findById(userId);
             assertThat(result).isPresent().get()
                     .satisfies(r -> assertAll("Update User Result",
                             () -> assertThat(r.getUserName()).isEqualTo(newUserName),

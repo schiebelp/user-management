@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * JPA repository, used only in test to compare with DAO approach
+ */
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
