@@ -16,7 +16,16 @@ import org.springframework.security.web.SecurityFilterChain;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 /**
- * Spring security configuration
+ * Spring security configuration:
+ **
+ * Note: Since we use Basic access authentication, we assume the api is deployed to already secured cluster of services.
+ *
+ * Fully Secure API in my mind:
+ * - HTTPS encryption
+ * - JWT tokens for authentication (or OAuth2 etc.)
+ * - XSS protection: In case of web client to not render javascript/html back using CPS policy headers
+ *      - I believe DB is protected in DAO using Criteria API "prepared statements" (see <a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">OWASP lilnk</a>).
+ * - CSRF protection on/off based on see: <a href="https://www.baeldung.com/csrf-stateless-rest-api">Baeldung link</a>
  */
 @Configuration
 @EnableWebSecurity
@@ -35,8 +44,13 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         return http
+
+                // Disable CORS ("aka exceptions to SOP") so now only in our domain / origin api calls are allowed
                 .cors(AbstractHttpConfigurer::disable)
+
+                // Disable CSRF - if Basic Auth is sufficient, then probably we run api in already secured cluster of services.
                 .csrf(AbstractHttpConfigurer::disable)
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Non authorized Docs endpoints - http://localhost:8080/swagger-ui/index.html
