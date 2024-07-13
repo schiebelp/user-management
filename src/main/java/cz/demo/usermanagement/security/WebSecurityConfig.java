@@ -65,6 +65,10 @@ public class WebSecurityConfig {
                 )
                 // Use basic authentication (user/pass)
                 .httpBasic(withDefaults())
+                .exceptionHandling(auth -> auth
+                        // handle 401 unauthorized requests - missinc credentials
+                        .authenticationEntryPoint(customHttp401UnauthorizedEntryPointEntryPoint())
+                )
                 .build();
     }
 
@@ -76,5 +80,10 @@ public class WebSecurityConfig {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
+    }
+
+    @Bean
+    public CustomHttp401UnauthorizedEntryPoint customHttp401UnauthorizedEntryPointEntryPoint() {
+        return new CustomHttp401UnauthorizedEntryPoint();
     }
 }

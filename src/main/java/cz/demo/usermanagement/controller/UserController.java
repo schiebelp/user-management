@@ -5,7 +5,6 @@ import cz.demo.usermanagement.controller.api.UserApi;
 import cz.demo.usermanagement.controller.dto.UpdateUserRequest;
 import cz.demo.usermanagement.controller.dto.UserResponse;
 import cz.demo.usermanagement.controller.dto.SaveUserRequest;
-import cz.demo.usermanagement.exception.UserServerException;
 import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.service.UserService;
 import cz.demo.usermanagement.service.domain.User;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.security.Principal;
 import java.util.List;
 
 /**
@@ -35,7 +33,6 @@ public class UserController implements UserApi {
 
     private final UserService userService;
     private final UserMapper userMapper;
-
     /**
      * POST /users : Create a new user
      */
@@ -60,10 +57,11 @@ public class UserController implements UserApi {
     */
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable(value = "id") Integer id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable(value = "id") Integer id,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
         log.info("Started delete user with id = " + id);
 
-        userService.deleteUser(id);
+        userService.deleteUser(id, userDetails.getUsername());
 
         return ResponseEntity.ok().build();
     }

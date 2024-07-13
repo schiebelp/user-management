@@ -15,7 +15,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name="\"User\"") // reserved keyword in postgre
+@Table(name="Users")
 public class UserEntity {
 
     @Id

@@ -1,7 +1,6 @@
 package cz.demo.usermanagement.service;
 
 
-import cz.demo.usermanagement.exception.UnauthorizedException;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.mapper.UserMapper;
@@ -12,6 +11,7 @@ import cz.demo.usermanagement.service.domain.User;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -183,7 +184,7 @@ class UserServiceIntTest {
             var id= existingUser1.getId();
 
             // when
-            tested.deleteUser(id);
+            tested.deleteUser(id, existingUser1.getUserName());
 
             // then
             assertThat(userDAO.findById(id))
@@ -191,10 +192,23 @@ class UserServiceIntTest {
         }
 
         @Test
+        @DisplayName("non owner delete user unauthorized error")
+        void whenIrrelevantUser_thenDeleteUser_fail() {
+
+            var badUser = "badUser";
+
+            assertThrows(
+                    AccessDeniedException.class,
+                    () -> tested.deleteUser(existingUser1.getId(), badUser));
+
+
+        }
+
+        @Test
         @DisplayName("non existing user throws exception")
         void whenNonExistingUser_thenDeleteById_throwsException() {
 
-            assertThrows(UserNotFoundException.class, () -> tested.deleteUser(999));
+            assertThrows(UserNotFoundException.class, () -> tested.deleteUser(999, "some-user"));
 
         }
 
@@ -272,7 +286,7 @@ class UserServiceIntTest {
                     .build();
 
             assertThrows(
-                    UnauthorizedException.class,
+                    AccessDeniedException.class,
                     () -> tested.updateUser(user,badUser));
 
 

@@ -1,6 +1,8 @@
 package cz.demo.usermanagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.demo.usermanagement.exception.UserAccessDeniedException;
+import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.service.UserService;
 import cz.demo.usermanagement.service.domain.User;
@@ -127,6 +129,22 @@ class UserControllerImplTest {
 
             verifyNoInteractions(userService);
         }
+
+        @Test
+        @DisplayName("409 Conflict: User already exists")
+        void givenExistingUser_whenCreateUser_thenConflict() throws Exception {
+
+            given(userService.createUser(any(User.class)))
+                    .willThrow(new UserAlreadyExistsException("some-explanation"));
+
+            ResultActions response = performPost(user);
+
+            expectConflict(response, "some-explanation");
+
+            verify(userService).createUser(any(User.class));
+
+        }
+
     }
 
     @Nested
@@ -225,7 +243,7 @@ class UserControllerImplTest {
                     // then
                     .andExpect(status().isOk());
 
-            verify(userService).deleteUser(id);
+            verify(userService).deleteUser(id, "admin");
         }
 
         @Test
@@ -236,7 +254,7 @@ class UserControllerImplTest {
 
             doThrow(new UserNotFoundException(id))
                     .when(userService)
-                    .deleteUser(any(Integer.class));
+                    .deleteUser(any(Integer.class), anyString());
 
             // when
             ResultActions response = performDelete(id);
@@ -244,7 +262,25 @@ class UserControllerImplTest {
             // then
             expectNotFound(response, id);
 
-            verify(userService).deleteUser(-1);
+            verify(userService).deleteUser(-1, "admin");
+        }
+
+        @Test
+        @DisplayName("403 Forbidden: Access denied: Only admin or same user can delete")
+        @WithMockUser(username = "non-author", password = "password")
+        void givenNonAuthorUser_whenDelete_thenDenied() throws Exception {
+
+            doThrow(new UserAccessDeniedException("Reason"))
+                    .when(userService)
+                    .deleteUser(any(Integer.class), anyString());
+
+            // when
+            ResultActions response = performDelete(user.getId());
+
+            // then
+            expectForbidden(response, user.getId(), "Reason");
+
+            verify(userService).deleteUser(user.getId(), "non-author");
         }
     }
 
@@ -351,6 +387,24 @@ class UserControllerImplTest {
 
             verifyUpdatedUser("admin", user);
         }
+
+        @Test
+        @DisplayName("403 Forbidden: Access denied: Only admin or same user can update")
+        @WithMockUser(username = "non-author", password = "password")
+        void givenNonAuthorUser_whenPut_thenDenied() throws Exception {
+
+            given(userService.updateUser(any(User.class), anyString()))
+                    .willThrow(new UserAccessDeniedException("Reason"));
+
+            // when
+            ResultActions response = performPut(user.getId(), user);
+
+            // then
+            expectForbidden(response, user.getId(), "Reason");
+
+            verifyUpdatedUser("non-author", user);
+        }
+
     }
 
     @Nested
@@ -503,6 +557,16 @@ class UserControllerImplTest {
 
     }
 
+    private void expectConflict(ResultActions response, String message) throws Exception {
+        response.andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.type", is(ABOUT_BLANK)))
+                .andExpect(jsonPath("$.title", is(HttpStatus.CONFLICT.getReasonPhrase())))
+                .andExpect(jsonPath("$.status", is(HttpStatus.CONFLICT.value())))
+                .andExpect(jsonPath("$.detail", is(message)))
+                .andExpect(jsonPath("$.instance", is(API_USERS)));
+    }
+
     private void expectNotFound(ResultActions response, String id) throws Exception {
         response.andDo(print())
                 .andExpect(status().isNotFound())
@@ -510,6 +574,16 @@ class UserControllerImplTest {
                 .andExpect(jsonPath("$.title", is(HttpStatus.NOT_FOUND.getReasonPhrase())))
                 .andExpect(jsonPath("$.status", is(HttpStatus.NOT_FOUND.value())))
                 .andExpect(jsonPath("$.detail", is(id)))
+                .andExpect(jsonPath("$.instance", is(API_USERS + "/" + id)));
+    }
+
+    private void expectForbidden(ResultActions response, Integer id, String message) throws Exception {
+        response.andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.type", is(ABOUT_BLANK)))
+                .andExpect(jsonPath("$.title", is(HttpStatus.FORBIDDEN.getReasonPhrase())))
+                .andExpect(jsonPath("$.status", is(HttpStatus.FORBIDDEN.value())))
+                .andExpect(jsonPath("$.detail", is(message)))
                 .andExpect(jsonPath("$.instance", is(API_USERS + "/" + id)));
     }
 
@@ -533,18 +607,12 @@ class UserControllerImplTest {
                  // password hidden!
     }
 
-    private void verifyUpdatedUser(String loggedUserName, User user) {
+    private void verifyUpdatedUser(String loggedUserName, User expected) {
         verify(userService).updateUser(userArgumentCaptor.capture(), eq(loggedUserName));
 
         User captured = userArgumentCaptor.getValue();
 
-        assertAll("Updated User",
-                () -> assertThat(captured.getId()).isEqualTo(user.getId()),
-                () -> assertThat(captured.getUserName()).isEqualTo(user.getUserName()),
-                () -> assertThat(captured.getPassword()).isEqualTo(user.getPassword()),
-                () -> assertThat(captured.getFirstName()).isEqualTo(user.getFirstName()),
-                () -> assertThat(captured.getLastName()).isEqualTo(user.getLastName())
-        );
+        assertThat(captured).usingRecursiveComparison().isEqualTo(expected);
     }
 
 }

@@ -35,15 +35,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.info("Started load user by username = " + username);
 
         if(username.equals(adminUsername)) {
-            log.info( "Returning admin user details");
-            return User.withUsername(adminUsername)
-                    .password(adminPassword)
-                    .authorities("ROLE_ADMIN")
-                    .accountExpired(false)
-                    .accountLocked(false)
-                    .credentialsExpired(false)
-                    .disabled(false)
-                    .build();
+            log.info( "Found admin user with username = " + username);
+            return buildAdmin();
         }
 
         log.info("Looking for user with username = " + username);
@@ -51,11 +44,26 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity existingUser = userDAO.findByUserName(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found with given username " + username));
 
-        log.info("Found existingUser = " + existingUser);
+        log.info("Found user with username = " + username);
 
+        return buildUser(existingUser);
+    }
+
+    private static UserDetails buildUser(UserEntity existingUser) {
         return User.withUsername(existingUser.getUserName())
                 .password(existingUser.getPassword())
                 .authorities("ROLE_USER")
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
+    }
+
+    private UserDetails buildAdmin() {
+        return User.withUsername(adminUsername)
+                .password(adminPassword)
+                .authorities("ROLE_ADMIN")
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)

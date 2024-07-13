@@ -4,10 +4,13 @@ import cz.demo.usermanagement.controller.dto.UpdateUserRequest;
 import cz.demo.usermanagement.controller.dto.UserResponse;
 import cz.demo.usermanagement.controller.dto.SaveUserRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +30,7 @@ public interface UserApi {
      * @return User created successfully (status code 201)
      *         or Bad request (status code 400)
      *         or Forbidden (status code 403)
+     *         or Internal Server Error (status code 500)
      */
     @Operation(
             summary = "Create new user",
@@ -34,8 +38,10 @@ public interface UserApi {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User created successfully"),
-            @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "409", description = "409 Conflict: User already exists", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @DeleteMapping("/{id}")
     ResponseEntity<UserResponse> createUser(@Valid @RequestBody SaveUserRequest saveUserRequest);
@@ -43,10 +49,13 @@ public interface UserApi {
     /**
      * DELETE /users/{id} : Delete a user by ID
      *
-     * @param id ID of the user to delete (required)
+     * @param id          ID of the user to delete (required)
+     * @param userDetails
      * @return User deleted successfully (status code 204)
+     *         or Bad request (status code 400)
+     *         or User not found (status code 404)
      *         or Forbidden (status code 403)
-     *         or 500 Internal Server Error (status code 500)
+     *         or Internal Server Error (status code 500)
      */
     @Operation(
             summary = "Delete a user by ID",
@@ -54,17 +63,19 @@ public interface UserApi {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Not Found"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
-    ResponseEntity<Void> deleteUser(@PathVariable(value = "id") Integer id);
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = ProblemDetail.class))) })
+    ResponseEntity<Void> deleteUser(@PathVariable(value = "id") Integer id, UserDetails userDetails);
 
     /**
      * GET /users : Get all users
      *
      * @return A list of users (status code 200)
+     *         or Bad request (status code 400)
      *         or Forbidden (status code 403)
-     *         or 500 Internal Server Error (status code 500)
+     *         or Internal Server Error (status code 500)
      */
     @Operation(
             summary = "Get all users",
@@ -72,8 +83,9 @@ public interface UserApi {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "A list of users"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = ProblemDetail.class))) })
     @GetMapping
     ResponseEntity<List<UserResponse>> getAllUsers();
 
@@ -83,21 +95,21 @@ public interface UserApi {
      *
      * @param id ID of the user to retrieve (required)
      * @return successful operation (status code 200)
-     *         or Invalid ID supplied (status code 400)
+     *         or Bad request (status code 400)
      *         or Forbidden (status code 403)
      *         or User not found (status code 404)
-     *         or 500 Internal Server Error (status code 500)
+     *         or Internal Server Error (status code 500)
      */
     @Operation(
             summary = "Get a user by ID",
             description = "Returns a single user"
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "successful operation"),
-            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
+            @ApiResponse(responseCode = "200", description = "Requested user by ID"),
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = ProblemDetail.class))) })
     @GetMapping("/{id}")
     ResponseEntity<UserResponse> getUserById(@PathVariable("id") Integer id);
 
@@ -110,7 +122,7 @@ public interface UserApi {
      *         or Bad request (status code 400)
      *         or Forbidden (status code 403)
      *         or User not found (status code 404)
-     *         or 500 Internal Server Error (status code 500)
+     *         or Internal Server Error (status code 500)
      */
     @Operation(
             summary = "Update an existing user",
@@ -118,10 +130,10 @@ public interface UserApi {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Bad request with description"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = ProblemDetail.class))) })
     @PutMapping("/{id}")
     ResponseEntity<UserResponse> updateUser(
             @PathVariable("id") Integer id,
@@ -137,7 +149,7 @@ public interface UserApi {
      *         or Bad request (status code 400)
      *         or Forbidden (status code 403)
      *         or User not found (status code 404)
-     *         or 500 Internal Server Error (status code 500)
+     *         or Internal Server Error (status code 500)
      */
     @Operation(
             summary = "Partially update an existing user",
@@ -145,10 +157,10 @@ public interface UserApi {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Bad request with description"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "500", description = "500 Internal Server Error") })
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(schema = @Schema(implementation = ProblemDetail.class))) })
     @PatchMapping("/{id}")
     ResponseEntity<UserResponse> partiallyUpdateUser(
             @PathVariable("id") Integer id,

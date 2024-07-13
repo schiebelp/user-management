@@ -2,6 +2,7 @@ package cz.demo.usermanagement.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -25,35 +26,50 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    /**
+     * BUSiness logic exc. handling
+     */
     @ExceptionHandler({
-            InvalidUserException.class,
-            UnauthorizedException.class,
+            UserAccessDeniedException.class,
             UserAlreadyExistsException.class,
-            UserNotFoundException.class,
-            UserServerException.class
-    })
-    public ProblemDetail customExceptionHandler(Exception ex) {
-        log.info("Custom exception: " + ex.getMessage());
+            UserNotFoundException.class})
+    public ProblemDetail handleCustomExceptions(Exception ex, WebRequest request) {
+        log.info("Custom exception: {} of request: {}", ex.getMessage(), request);
+
         HttpStatus status = getStatusFromException(ex.getClass());
 
         return ProblemDetail.forStatusAndDetail(status, ex.getMessage());
     }
 
+    /**
+     * Authorization exc. handling, default code is 500 even if its the clients fault
+     */
+    @ExceptionHandler({AuthorizationDeniedException.class})
+    public ProblemDetail handleAccessDeniedException(Exception ex, WebRequest request) {
+        log.info("Custom exception: {} of request: {}", ex.getMessage(), request);
+
+        return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    /**
+     * RequestBody annotated exc. handling
+     */
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex,
-            HttpHeaders headers,
-            HttpStatusCode status,
-            WebRequest request) {
-        log.info("Custom not valid exception:" + ex);
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+                                                                  HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        log.info("Body request invalid exception: {} of request: {}", ex.getMessage(), request);
 
         String errors = getErrorMessages(ex.getBindingResult()).toString();
 
         return new ResponseEntity<>(ProblemDetail.forStatusAndDetail(status, errors), status);
     }
 
+    /**
+     * PathVariable annotated parameters exc. handling
+     * */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.info("Path variable mismatch exception: {}", ex.getMessage());
         String name = ex.getName();
         String type = getType(ex);
         Object value = ex.getValue();
@@ -62,6 +78,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         return ProblemDetail.forStatusAndDetail(BAD_REQUEST, message);
     }
+
+    /**
+     * General exc. handling
+     */
+    @ExceptionHandler(Throwable.class)
+    public ProblemDetail handleGeneralException(Throwable ex) {
+        log.error("Unexpected error occurred", ex);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected error occurred. Please try again later.");
+    }
+
+    //new
 
     private List<String> getErrorMessages(BindingResult bindingResult) {
         return bindingResult.getFieldErrors().stream()
@@ -75,7 +103,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .orElse("Unknown");
     }
 
-    private HttpStatus getStatusFromException(Class<? extends Exception> exceptionClass) {
+    private static HttpStatus getStatusFromException(Class<? extends Exception> exceptionClass) {
         ResponseStatus responseStatus = exceptionClass.getAnnotation(ResponseStatus.class);
         if (responseStatus != null) {
             return responseStatus.value();

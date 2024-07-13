@@ -5,8 +5,10 @@ spring:
     username: api_user
     password: 'pwapi'
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: create-drop
+      format_sql: true
   admin:
     username: admin
     password: $2a$10$JF.GmZ5gwEJKPpLwGa5FN.L/.ir/KzEt9tTqnvriUJmEyb1BVRTi6
