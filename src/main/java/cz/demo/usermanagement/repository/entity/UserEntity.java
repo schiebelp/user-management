@@ -8,7 +8,7 @@ import lombok.*;
 /**
  * DB class of User
  *
- * nice to have: roles
+ * Nice to have: roles
  */
 @Data
 @Builder

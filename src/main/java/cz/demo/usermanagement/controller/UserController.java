@@ -2,9 +2,9 @@ package cz.demo.usermanagement.controller;
 
 
 import cz.demo.usermanagement.controller.api.UserApi;
+import cz.demo.usermanagement.controller.dto.SaveUserRequest;
 import cz.demo.usermanagement.controller.dto.UpdateUserRequest;
 import cz.demo.usermanagement.controller.dto.UserResponse;
-import cz.demo.usermanagement.controller.dto.SaveUserRequest;
 import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.service.UserService;
 import cz.demo.usermanagement.service.domain.User;

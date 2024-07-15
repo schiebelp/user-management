@@ -1,8 +1,8 @@
 package cz.demo.usermanagement.controller.api;
 
 import cz.demo.usermanagement.controller.dto.UpdateUserRequest;
-import cz.demo.usermanagement.controller.dto.UserResponse;
 import cz.demo.usermanagement.controller.dto.SaveUserRequest;
+import cz.demo.usermanagement.controller.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

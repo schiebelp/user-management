@@ -44,6 +44,8 @@ class UserControllerImplTest {
 
     private static final String API_USERS = "/api/users";
     private static final String ABOUT_BLANK = "about:blank";
+    private static final String USER_NAME_TOO_LONG = "ThisTextIs31CharactersLong00fjd";
+    private static final String USER_NAME_TOO_SHORT = "xy";
 
     @Autowired
     protected MockMvc mvc;
@@ -116,16 +118,46 @@ class UserControllerImplTest {
         }
 
         @Test
-        @DisplayName("400 Bad Request: User Name size must be between ...")
-        void givenShortUserName_whenPost_thenSizeErr() throws Exception{
+        @DisplayName("400 Bad Request: User Name - SQL Injection  caught")
+        void givenSqlInjectionUserName_whenPost_thenSizeErr() throws Exception{
             // given
-            user.setUserName("short");
+            user.setUserName("DROP ALL TABLES;");
 
             // when
             ResultActions response = performPost(user);
 
             // then
-            expectBadRequest(response, API_USERS, "User Name size must be between 6 and 254");
+            expectBadRequest(response, API_USERS, "Username must contain only letters, numbers, underscore, or hyphen");
+
+            verifyNoInteractions(userService);
+        }
+
+        @Test
+        @DisplayName("400 Bad Request: Short User Name size must be between ...")
+        void givenShortUserName_whenPost_thenSizeErr() throws Exception{
+            // given
+            user.setUserName(USER_NAME_TOO_SHORT);
+
+            // when
+            ResultActions response = performPost(user);
+
+            // then
+            expectBadRequest(response, API_USERS, "User Name size must be between 3 and 30");
+
+            verifyNoInteractions(userService);
+        }
+
+        @Test
+        @DisplayName("400 Bad Request: Long User Name size must be between ...")
+        void givenLongUserName_whenPost_thenSizeErr() throws Exception{
+            // given
+            user.setUserName(USER_NAME_TOO_LONG);
+
+            // when
+            ResultActions response = performPost(user);
+
+            // then
+            expectBadRequest(response, API_USERS, "User Name size must be between 3 and 30");
 
             verifyNoInteractions(userService);
         }
@@ -342,13 +374,13 @@ class UserControllerImplTest {
         @DisplayName("400 Bad Request: User Name size must be between ...")
         void givenShortUserName_whenPut_thenSizeErr() throws Exception{
             // given
-            user.setUserName("short");
+            user.setUserName(USER_NAME_TOO_SHORT);
 
             // when
             ResultActions response = performPut(user.getId(), user);
 
             // then
-            expectBadRequest(response, API_USERS + "/" + user.getId(), "User Name size must be between 6 and 254");
+            expectBadRequest(response, API_USERS + "/" + user.getId(), "User Name size must be between 3 and 30");
 
             verifyNoInteractions(userService);
         }
@@ -460,13 +492,13 @@ class UserControllerImplTest {
         @DisplayName("400 Bad Request: User Name size must be between ...")
         void givenShortUserName_whenPatch_thenSizeErr() throws Exception{
             // given
-            user.setUserName("short");
+            user.setUserName(USER_NAME_TOO_SHORT);
 
             // when
             ResultActions response = performPatch(user.getId(), user);
 
             // then
-            expectBadRequest(response, API_USERS + "/" + user.getId(), "User Name size must be between 6 and 254");
+            expectBadRequest(response, API_USERS + "/" + user.getId(), "User Name size must be between 3 and 30");
 
             verifyNoInteractions(userService);
         }

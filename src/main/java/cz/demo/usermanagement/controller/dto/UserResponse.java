@@ -11,4 +11,5 @@ public class UserResponse {
     private String userName;
     private String firstName;
     private String lastName;
+    // no password!
 }

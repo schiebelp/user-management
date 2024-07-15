@@ -1,6 +1,7 @@
 package cz.demo.usermanagement.controller.dto;
 
-import jakarta.validation.constraints.Size;
+import cz.demo.usermanagement.validation.ValidPassword;
+import cz.demo.usermanagement.validation.ValidUsername;
 import lombok.Data;
 import lombok.ToString;
 
@@ -10,10 +11,20 @@ import lombok.ToString;
 @Data
 public class UpdateUserRequest {
 
-    @Size(min = 6, max = 254, message = "{validation.userName.size}")
+    /**
+     * User's username for update.
+     *
+     * @see ValidUsername
+     */
+    @ValidUsername
     private String userName;
 
-    @Size(min = 6, max = 254, message = "{validation.password.size}")
+    /**
+     * User's password for update.
+     *
+     * @see ValidPassword
+     */
+    @ValidPassword
     private String password;
 
     private String firstName;
