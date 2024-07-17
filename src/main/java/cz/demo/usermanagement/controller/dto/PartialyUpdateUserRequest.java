@@ -2,14 +2,17 @@ package cz.demo.usermanagement.controller.dto;
 
 import cz.demo.usermanagement.validation.ValidPassword;
 import cz.demo.usermanagement.validation.ValidUsername;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.Set;
+
 /**
- * DTO for UserAPI PATCH, PUT
+ * DTO for UserAPI PATCH
  */
 @Data
-public class UpdateUserRequest {
+public class PartialyUpdateUserRequest {
 
     /**
      * User's username for update.
@@ -27,9 +30,13 @@ public class UpdateUserRequest {
     @ValidPassword
     private String password;
 
+    @Size(max = 100) // possibly also use pattern to prevent xss
     private String firstName;
 
+    @Size(max = 100) // possibly also use pattern to prevent xss
     private String lastName;
+
+    private Set<String> roles;
 
     @ToString.Include(name = "password")
     public String getPasswordMasked() {

@@ -2,6 +2,8 @@ package cz.demo.usermanagement.controller.dto;
 
 import lombok.Data;
 
+import java.util.Set;
+
 /**
  * DTO for UserAPI read operations
  */
@@ -11,5 +13,6 @@ public class UserResponse {
     private String userName;
     private String firstName;
     private String lastName;
+    private Set<String> roles;
     // no password!
 }

@@ -2,12 +2,12 @@ package cz.demo.usermanagement.controller;
 
 
 import cz.demo.usermanagement.controller.api.UserApi;
+import cz.demo.usermanagement.controller.dto.PartialyUpdateUserRequest;
 import cz.demo.usermanagement.controller.dto.SaveUserRequest;
-import cz.demo.usermanagement.controller.dto.UpdateUserRequest;
 import cz.demo.usermanagement.controller.dto.UserResponse;
 import cz.demo.usermanagement.mapper.UserMapper;
+import cz.demo.usermanagement.repository.entity.User;
 import cz.demo.usermanagement.service.UserService;
-import cz.demo.usermanagement.service.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -103,7 +103,9 @@ public class UserController implements UserApi {
                                                    @AuthenticationPrincipal UserDetails userDetails) {
         log.info("Started update user with id {}, request {}, userDetails {}", id, request, userDetails);
 
-        User updated = userService.updateUser(userMapper.toUser(id, request), userDetails.getUsername());
+        User updated = userService.updateUser(
+                userMapper.toUser(id, request),
+                userDetails.getUsername());
 
         return ResponseEntity.ok(userMapper.toUserResponse(updated));
     }
@@ -114,11 +116,12 @@ public class UserController implements UserApi {
     @Override
     @PatchMapping("/{id}")
     public ResponseEntity<UserResponse> partiallyUpdateUser(@PathVariable(value = "id") Integer id,
-                                                   @Valid @RequestBody UpdateUserRequest request,
+                                                   @Valid @RequestBody PartialyUpdateUserRequest request,
                                                    @AuthenticationPrincipal UserDetails userDetails) {
         log.info("Started partially update user with id {}, request {}, userDetails {}", id, request, userDetails);
 
-        User updated = userService.updateUser(userMapper.toUser(id, request), userDetails.getUsername());
+        User updated = userService.updateUser(userMapper.toUser(id, request),
+                userDetails.getUsername());
 
         return ResponseEntity.ok(userMapper.toUserResponse(updated));
     }

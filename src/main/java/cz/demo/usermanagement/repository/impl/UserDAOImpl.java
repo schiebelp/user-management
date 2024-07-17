@@ -1,12 +1,14 @@
 package cz.demo.usermanagement.repository.impl;
 
 import cz.demo.usermanagement.repository.UserDAO;
-import cz.demo.usermanagement.repository.entity.UserEntity;
+import cz.demo.usermanagement.repository.entity.User;
+import cz.demo.usermanagement.repository.enums.ROLE;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -24,7 +26,7 @@ public class UserDAOImpl implements UserDAO {
     private EntityManager entityManager;
 
     @Override
-    public UserEntity save(UserEntity user) {
+    public User save(User user) {
         log.info("Started save user {} in opened transaction: {} ", user, TransactionSynchronizationManager.isActualTransactionActive());
 
         entityManager.persist(user);
@@ -32,41 +34,52 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public UserEntity update(UserEntity user) {
+    public User update(User user) {
         return entityManager.merge(user);
     }
 
     @Override
     public void deleteById(int id) {
-        UserEntity user = entityManager.find(UserEntity.class, id);
+        User user = entityManager.find(User.class, id);
         if (user != null) {
             entityManager.remove(user);
         }
     }
 
     @Override
-    public Optional<UserEntity> findById(int id) {
-        return Optional.ofNullable(entityManager.find(UserEntity.class, id));
+    public Optional<User> findById(int id) {
+        return Optional.ofNullable(entityManager.find(User.class, id));
     }
 
     @Override
-    public List<UserEntity> findAll() {
+    public List<User> findAll() {
 
-        CriteriaQuery<UserEntity> criteria = entityManager.getCriteriaBuilder().createQuery(UserEntity.class);
+        CriteriaQuery<User> criteria = entityManager.getCriteriaBuilder().createQuery(User.class);
 
-        Root<UserEntity> root = criteria.from(UserEntity.class);
+        Root<User> root = criteria.from(User.class);
         criteria.select(root);
 
         return entityManager.createQuery(criteria).getResultList();
     }
 
     @Override
-    public Optional<UserEntity> findByUserName(String userName) {
+    public Optional<User> findByUserName(String userName) {
+        return findByUserName(userName, false);
+    }
+
+
+    @Override
+    public Optional<User> findByUserName(String userName, boolean fetchRoles) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
-        CriteriaQuery<UserEntity> criteria = builder.createQuery(UserEntity.class);
+        CriteriaQuery<User> criteria = builder.createQuery(User.class);
 
-        Root<UserEntity> from = criteria.from(UserEntity.class);
+        Root<User> from = criteria.from(User.class);
+
+        if (fetchRoles) {
+            // Perform a fetch join to load roles along with the user
+            from.fetch("roles", JoinType.LEFT);
+        }
 
         criteria.select(from);
 
@@ -78,6 +91,18 @@ public class UserDAOImpl implements UserDAO {
         catch (NoResultException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<User> findByRole(ROLE role) {
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<User> criteria = builder.createQuery(User.class);
+        Root<User> root = criteria.from(User.class);
+
+        criteria.select(root)
+                .where(builder.equal(root.join("roles").get("name"), role));
+
+        return entityManager.createQuery(criteria).getResultList();
     }
 
 }

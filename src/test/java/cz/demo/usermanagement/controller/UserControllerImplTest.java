@@ -5,7 +5,7 @@ import cz.demo.usermanagement.exception.UserAccessDeniedException;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.service.UserService;
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.repository.entity.User;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;

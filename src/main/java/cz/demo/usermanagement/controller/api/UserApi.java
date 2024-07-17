@@ -1,6 +1,6 @@
 package cz.demo.usermanagement.controller.api;
 
-import cz.demo.usermanagement.controller.dto.UpdateUserRequest;
+import cz.demo.usermanagement.controller.dto.PartialyUpdateUserRequest;
 import cz.demo.usermanagement.controller.dto.SaveUserRequest;
 import cz.demo.usermanagement.controller.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -164,7 +164,7 @@ public interface UserApi {
     @PatchMapping("/{id}")
     ResponseEntity<UserResponse> partiallyUpdateUser(
             @PathVariable("id") Integer id,
-            @Valid @RequestBody UpdateUserRequest patchUserRequest,
+            @Valid @RequestBody PartialyUpdateUserRequest patchUserRequest,
             UserDetails userDetails);
 
 }

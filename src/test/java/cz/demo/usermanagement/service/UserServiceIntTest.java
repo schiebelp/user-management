@@ -6,8 +6,7 @@ import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.repository.UserDAO;
 import cz.demo.usermanagement.repository.UserRepository;
-import cz.demo.usermanagement.repository.entity.UserEntity;
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.repository.entity.User;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,18 +45,18 @@ class UserServiceIntTest {
     @Autowired
     private UserMapper userMapper;
 
-    private UserEntity existingUser1;
-    private UserEntity existingUser2;
+    private User existingUser1;
+    private User existingUser2;
 
     @BeforeEach
     void setUp() {
-        existingUser1 = UserEntity.builder()
+        existingUser1 = User.builder()
                 .firstName("John")
                 .lastName("Doe")
                 .userName("johndoe")
                 .password("password123")
                 .build();
-        existingUser2 = UserEntity.builder()
+        existingUser2 = User.builder()
                 .firstName("Jane")
                 .lastName("Smith")
                 .userName("janesmith")
@@ -101,7 +100,7 @@ class UserServiceIntTest {
                     () -> assertThat(user.getPassword()).isNotBlank()// Assuming password is hashed and cannot be directly compared
             );
 
-            Optional<UserEntity> result = userDAO.findById(user.getId());
+            Optional<User> result = userDAO.findById(user.getId());
             assertThat(result).isPresent().get()
                     .satisfies(r -> assertAll("Create User Result",
                             () -> assertThat(r.getFirstName()).isEqualTo(newUser.getFirstName()),
@@ -116,8 +115,7 @@ class UserServiceIntTest {
         @DisplayName("will throw exception if user already exists")
         void givenExistingUser_whenCreateUser_thenUserExistException() {
 
-            User user = userMapper.toUser(existingUser1);
-            assertThrows(UserAlreadyExistsException.class, () -> tested.createUser(user));
+            assertThrows(UserAlreadyExistsException.class, () -> tested.createUser(existingUser1));
 
         }
 
@@ -236,7 +234,7 @@ class UserServiceIntTest {
             tested.updateUser(update, ownerName);
 
             // then
-            Optional<UserEntity> result = userDAO.findById(userId);
+            Optional<User> result = userDAO.findById(userId);
             assertThat(result).isPresent().get()
                     .satisfies(r -> assertAll("Update User Result",
                             () -> assertThat(r.getFirstName()).isEqualTo(update.getFirstName()),
@@ -263,7 +261,7 @@ class UserServiceIntTest {
             );
 
             // then
-            Optional<UserEntity> result = userDAO.findById(userId);
+            Optional<User> result = userDAO.findById(userId);
             assertThat(result).isPresent().get()
                     .satisfies(r -> assertAll("Update User Result",
                             () -> assertThat(r.getUserName()).isEqualTo(newUserName),

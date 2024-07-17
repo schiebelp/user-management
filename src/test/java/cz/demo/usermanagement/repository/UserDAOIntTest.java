@@ -1,6 +1,6 @@
 package cz.demo.usermanagement.repository;
 
-import cz.demo.usermanagement.repository.entity.UserEntity;
+import cz.demo.usermanagement.repository.entity.User;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -24,20 +24,19 @@ class UserDAOIntTest {
     @Autowired
     private UserDAO tested;
 
-    private UserEntity existingUser1;
-    private UserEntity existingUser2;
-    private List<UserEntity> existingUsers;
+    private User existingUser1;
+    private User existingUser2;
 
     @BeforeEach
     public void setUp() {
-        existingUser1 = UserEntity.builder()
+        existingUser1 = User.builder()
                 .firstName("John")
                 .lastName("Doe")
                 .userName("johndoe")
                 .password("password123")
                 .build();
 
-        existingUser2 = UserEntity.builder()
+        existingUser2 = User.builder()
                 .firstName("Jane")
                 .lastName("Smith")
                 .userName("janesmith")
@@ -64,7 +63,7 @@ class UserDAOIntTest {
         void whenNewUser_thenSave_success() {
 
             // given
-            UserEntity user = UserEntity.builder()
+            User user = User.builder()
                     .firstName("Bilbo")
                     .lastName("Baggins")
                     .userName("bilbobagins")
@@ -72,7 +71,7 @@ class UserDAOIntTest {
                     .build();
 
             // when
-            UserEntity savedUser = tested.save(user);
+            User savedUser = tested.save(user);
 
             // then
             assertAll("Saved User",
@@ -94,7 +93,7 @@ class UserDAOIntTest {
             existingUser1.setPassword(newPassword);
 
             // when
-            UserEntity savedUser = tested.save(existingUser1);
+            User savedUser = tested.save(existingUser1);
 
             // then
             assertThat(savedUser.getPassword()).isEqualTo(newPassword);
@@ -119,7 +118,7 @@ class UserDAOIntTest {
         void whenExistingUser_thenFindById_success() {
 
             // when
-            Optional<UserEntity> foundUser = tested.findById(existingUser1.getId());
+            Optional<User> foundUser = tested.findById(existingUser1.getId());
 
             // then
             assertThat(foundUser).isPresent();
@@ -131,7 +130,7 @@ class UserDAOIntTest {
         void whenNonExistingUser_thenFindById_fail() {
 
             // when
-            Optional<UserEntity> foundUser = tested.findById(99);
+            Optional<User> foundUser = tested.findById(99);
 
             // then
             assertThat(foundUser).isNotPresent();
@@ -149,12 +148,12 @@ class UserDAOIntTest {
         void whenExistingUsers_thenFindAll_success() {
 
             // when
-            List<UserEntity> users = tested.findAll();
+            List<User> users = tested.findAll();
 
             // then
             assertThat(users).hasSize(2);
             assertThat(users)
-                    .extracting(UserEntity::getUserName)
+                    .extracting(User::getUserName)
                     .containsExactlyInAnyOrder(existingUser1.getUserName(), existingUser2.getUserName() );
 
         }
@@ -170,7 +169,7 @@ class UserDAOIntTest {
         void whenExistingUser_thenFindByUserName_success() {
 
             // when
-            Optional<UserEntity> foundUser = tested.findByUserName(existingUser1.getUserName());
+            Optional<User> foundUser = tested.findByUserName(existingUser1.getUserName());
 
             // then
             assertThat(foundUser).isPresent();
@@ -182,7 +181,7 @@ class UserDAOIntTest {
         void whenNonExistingUser_thenFindByUserName_fail() {
 
             // when
-            Optional<UserEntity> foundUser = tested.findByUserName("nonexistinguser");
+            Optional<User> foundUser = tested.findByUserName("nonexistinguser");
 
             // then
             assertThat(foundUser).isNotPresent();
@@ -205,7 +204,7 @@ class UserDAOIntTest {
             tested.deleteById(id);
 
             // then
-            Optional<UserEntity> foundUser = tested.findById(id);
+            Optional<User> foundUser = tested.findById(id);
             assertThat(foundUser).isNotPresent();
         }
 

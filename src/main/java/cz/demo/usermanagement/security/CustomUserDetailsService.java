@@ -1,18 +1,22 @@
 package cz.demo.usermanagement.security;
 
 
-
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.repository.UserDAO;
-import cz.demo.usermanagement.repository.entity.UserEntity;
+import cz.demo.usermanagement.repository.entity.User;
+import cz.demo.usermanagement.repository.enums.ROLE;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * Concrete security implementation to load user specific data from Users repository
@@ -39,20 +43,21 @@ public class CustomUserDetailsService implements UserDetailsService {
             return buildAdmin();
         }
 
-        log.info("Looking for user with username = " + username);
-
-        UserEntity existingUser = userDAO.findByUserName(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with given username " + username));
+        User existingUser = userDAO.findByUserName(username, true)
+                .orElseGet(() -> {
+                log.error("UserNotFoundException: User not found with given username " + username);
+                throw new UserNotFoundException("User not found with given username " + username);
+            });
 
         log.info("Found user with username = " + username);
 
         return buildUser(existingUser);
     }
 
-    private static UserDetails buildUser(UserEntity existingUser) {
-        return User.withUsername(existingUser.getUserName())
-                .password(existingUser.getPassword())
-                .authorities("ROLE_USER")
+    private static UserDetails buildUser(User user) {
+        return org.springframework.security.core.userdetails.User.withUsername(user.getUserName())
+                .password(user.getPassword())
+                .authorities(getAuthorities(user))
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)
@@ -61,14 +66,26 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     private UserDetails buildAdmin() {
-        return User.withUsername(adminUsername)
+        return org.springframework.security.core.userdetails.User.withUsername(adminUsername)
                 .password(adminPassword)
-                .authorities("ROLE_ADMIN")
+                .authorities(ROLE.ROLE_ADMIN.name())
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)
                 .disabled(false)
                 .build();
+    }
+
+    /**
+     * Get user roles to spring security GrantedAuthority
+     * @param user User
+     * @return Collection of GrantedAuthority
+     */
+    private static Collection<GrantedAuthority> getAuthorities(User user) {
+        log.info("Start get authorities for User: " + user.getUserName());
+        return user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                .collect(Collectors.toSet());
     }
 
 }

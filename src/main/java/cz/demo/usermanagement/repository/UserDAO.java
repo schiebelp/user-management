@@ -1,25 +1,30 @@
 package cz.demo.usermanagement.repository;
 
-import cz.demo.usermanagement.repository.entity.UserEntity;
+import cz.demo.usermanagement.repository.entity.User;
+import cz.demo.usermanagement.repository.enums.ROLE;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * DAO repository for {@link UserEntity} for more granular approach than UserRepository
+ * DAO repository for {@link User} for more granular approach than UserRepository
  */
 public interface UserDAO {
 
-    UserEntity save(UserEntity user);
+    User save(User user);
 
-    UserEntity update(UserEntity user);
+    User update(User user);
 
     void deleteById(int id);
 
-    Optional<UserEntity> findById(int id);
+    Optional<User> findById(int id);
 
-    List<UserEntity> findAll();
+    List<User> findAll();
 
-    Optional<UserEntity> findByUserName(String userName);
+    Optional<User> findByUserName(String userName);
+
+    Optional<User> findByUserName(String userName, boolean fetchRoles);
+
+    List<User> findByRole(ROLE role);
 
 }

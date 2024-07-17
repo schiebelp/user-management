@@ -6,8 +6,8 @@ import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.repository.UserDAO;
-import cz.demo.usermanagement.repository.entity.UserEntity;
-import cz.demo.usermanagement.service.domain.User;
+import cz.demo.usermanagement.repository.entity.Role;
+import cz.demo.usermanagement.repository.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,17 +15,20 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Business layer for User operations
  *
- * Note:
- * Default transation isolation Read Committed (prevents dirty reads) is the default isolation level in Postgres, SQL Server, and Oracle
- * Default Propagation.REQUIRED is the default propagation type of Spring
+ * Note Transactions:
+ *  Default transation isolation Read Committed (prevents dirty reads) is the default isolation level in Postgres, SQL Server, and Oracle
+ *  Default Propagation.REQUIRED is the default propagation type of Spring
  */
 @Service
 @RequiredArgsConstructor
@@ -38,58 +41,50 @@ public class UserServiceImpl implements UserService {
     private static final String ACCESS_GRANTED = "Access granted";
 
     private final UserDAO userDAO;
+    private final RoleService roleService;
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public User createUser(User request) {
-        log.info("Started create user {} in opened transaction: {} ", request, TransactionSynchronizationManager.isActualTransactionActive());
+        log.info("Started create user {} in opened transaction: {} ", request, TransactionSynchronizationManager.getCurrentTransactionName());
 
-        Optional<UserEntity> optionalUsers= userDAO.findByUserName(request.getUserName());
+        Optional<User> optionalUsers= userDAO.findByUserName(request.getUserName());
         if(optionalUsers.isPresent()){
             throw new UserAlreadyExistsException("User already registered with given userName "+request.getUserName());
         }
 
+        assignRoleCreateIfNotExist(request);
+
         encodePassword(request);
 
-        UserEntity userEntity = userDAO.save(userMapper.toUserEntity(request));
-
-        log.info("Succesfuly created user with id = " + userEntity.getId());
-
-        return userMapper.toUser(userEntity);
+        return userDAO.save(request);
     }
 
     @Override
     @Transactional
     public User updateUser(User request, String loggedUserName) {
-        log.info("Transaction open: " + TransactionSynchronizationManager.isActualTransactionActive());
+        log.info("Started update user {} in opened transaction: {} ", request, TransactionSynchronizationManager.getCurrentTransactionName());
 
-        Integer id = request.getId();
+        User current = userDAO.findById(request.getId())
+                .orElseThrow(() -> new UserNotFoundException("User not found with given id " + request.getId()));
 
-        log.info("Started update user with id = " + id);
+        assignRoleCreateIfNotExist(request);
 
-        UserEntity existingUser = userDAO.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with given id " + id));
+        checkUserAccessForModification(current.getUserName(), loggedUserName);
 
-        checkUserAccessForModification(existingUser.getUserName(), loggedUserName);
+        // enables partial update
+        userMapper.update(request, current);
 
-        userMapper.updateEntity(request, existingUser);
-
-        UserEntity saved = userDAO.update(existingUser);
-
-        log.info("Succesfuly updated user {} ", saved);
-
-        return userMapper.toUser(saved);
+        return userDAO.update(current);
     }
 
     @Override
     @Transactional(readOnly = true) //for performance
     public List<User> getAllUsers() {
         log.info("Started get all users");
-        return userDAO.findAll().stream()
-                .map(userMapper::toUser)
-                .toList();
+        return userDAO.findAll();
     }
 
     @Override
@@ -97,19 +92,18 @@ public class UserServiceImpl implements UserService {
     public User getUserById(Integer userId) {
         log.info("Started get user with id = " + userId);
 
-        UserEntity user = userDAO.findById(userId)
+        User user = userDAO.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(String.valueOf(userId)));
 
         log.info("Found user = " + user);
 
-        return userMapper.toUser(user);
+        return user;
     }
 
     @Override
     @Transactional
     public void deleteUser(Integer id, String loggedUserName) {
-        log.info("Started delete user with id = " + id);
-
+        log.info("Started delete user id {} in opened transaction: {} ", id, TransactionSynchronizationManager.getCurrentTransactionName());
 
         userDAO.findById(id)
                 .ifPresentOrElse(
@@ -137,8 +131,10 @@ public class UserServiceImpl implements UserService {
      *
      * @param entityUserName entity username
      * @param loggedUserName logged username
+     *
+     * @throws UserAccessDeniedException if user is not author or admin
      */
-    private void checkUserAccessForModification(String entityUserName, String loggedUserName) {
+    private void checkUserAccessForModification(String entityUserName, String loggedUserName) throws UserAccessDeniedException {
 
         Objects.requireNonNull(entityUserName, "Entity username cannot be null");
         Objects.requireNonNull(loggedUserName, "Logged username cannot be null");
@@ -156,6 +152,23 @@ public class UserServiceImpl implements UserService {
         log.info(ACCESS_DENIED + ": User {} cannot modify {}. Only admin or same user is allowed", loggedUserName, entityUserName);
         throw new UserAccessDeniedException(ACCESS_DENIED + ": User " + loggedUserName + " cannot modify " + entityUserName + ". Only admin or same user is allowed");
 
+    }
+
+    /**
+     * Apart from assigning roles, makes sure to reuse existing ones
+     *
+     * @param request User
+     */
+    private void assignRoleCreateIfNotExist(User request) {
+        if (CollectionUtils.isEmpty(request.getRoles())) {
+            return;
+        }
+
+        Set<Role> roles = request.getRoles().stream()
+                .map(role -> roleService.createRoleIfNotExists(role.getName()))
+                .collect(Collectors.toSet());
+
+        request.setRoles(roles);
     }
 
 }
