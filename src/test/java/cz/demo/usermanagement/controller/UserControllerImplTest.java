@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.demo.usermanagement.exception.UserAccessDeniedException;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
+import cz.demo.usermanagement.mapper.UserMapper;
 import cz.demo.usermanagement.service.UserService;
 import cz.demo.usermanagement.repository.entity.User;
 import org.junit.jupiter.api.*;
@@ -52,6 +53,9 @@ class UserControllerImplTest {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @MockBean
     private UserService userService;
@@ -626,6 +630,7 @@ class UserControllerImplTest {
                 .password(password)
                 .firstName(firstName)
                 .lastName(lastName)
+                .roles(Collections.emptySet())
                 .build();
     }
 
