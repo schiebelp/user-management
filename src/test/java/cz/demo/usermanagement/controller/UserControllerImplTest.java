@@ -4,15 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.demo.usermanagement.exception.UserAccessDeniedException;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
-import cz.demo.usermanagement.mapper.UserMapper;
-import cz.demo.usermanagement.service.UserService;
+import cz.demo.usermanagement.repository.UserDAO;
 import cz.demo.usermanagement.repository.entity.User;
+import cz.demo.usermanagement.service.RoleService;
+import cz.demo.usermanagement.service.UserService;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,9 +37,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Web layer tests with JUnit 5 and Mockito
+ *
+ * Notes:
+ *
+ *  @WebMvcTest:
+ *      Description:
+ *          Loads only MVC components, like @Controller, @ControllerAdvice, Spring Security and MockMvc, etc. see also {@link WebMvcTest}.
+ *          Underlying layers are mocked using @MockBean annotation and their behaviour using mockito methods like "willReturn"
+ *      Advantage:
+ *          Enables to develop Controller independently of Service, DB, etc. layers
+ *          Faster than loading full context @SpringBootTest
+ *          Tomcat server does not run
+ *      Disadvantage:
+ *          Does not test "End to End" integration with all layers (like @Service, @Repository, etc.)
+ *          By mocking behaviour of underlying Service we need to use @MockBean. While proper usage, I found problems:
+ *              1. Upcoming deprecation by @MockitoBean, see: https://github.com/spring-projects/spring-boot/pull/39864
+ *              2. The application context can be unnecesarily reloaded when used in multiple classes: see: https://www.baeldung.com/spring-tests#2-the-problems-withmockbean
+ *                  This problem can be mitigated with some caution using @MockInBean, see https://github.com/antoinemeyer/mock-in-bean/
+ *                  My take on this problem would be to put mockbean to ancestor class, which obviously has limitations
+ *
+ *  @WithMockUser:
+ *      Default user for Spring Security, used on methods also - to simulate an authenticated user.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(UserController.class)
 @WithMockUser(username = "admin", password = "password")
 class UserControllerImplTest {
 
@@ -48,17 +68,23 @@ class UserControllerImplTest {
     private static final String USER_NAME_TOO_LONG = "ThisTextIs31CharactersLong00fjd";
     private static final String USER_NAME_TOO_SHORT = "xy";
 
+    /**
+     * Loaded in WebApplicationContext with @WebMvcTest
+     */
     @Autowired
     protected MockMvc mvc;
 
     @Autowired
     protected ObjectMapper objectMapper;
 
-    @Autowired
-    private UserMapper userMapper;
-
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private UserDAO userDAO;
+
+    @MockBean
+    private RoleService roleService;
 
     @Captor
     private ArgumentCaptor<User> userArgumentCaptor;
@@ -234,7 +260,7 @@ class UserControllerImplTest {
             // then
             expectBadRequest(response, API_USERS + "/"+ id,
                     "Invalid 'id' supplied. Should be a valid 'Integer' and 'invalidId' isn't!"
-                    );
+            );
 
             verifyNoInteractions(userService);
         }
@@ -255,10 +281,10 @@ class UserControllerImplTest {
             performGetAll().andDo(print())
                     // then
                     .andExpect(status().isOk())
-                        .andExpect(jsonPath("$[0].id", is(String.valueOf(user.getId()))))
-                        .andExpect(jsonPath("$[0].userName", is(user.getUserName())))
-                        .andExpect(jsonPath("$[0].firstName", is(user.getFirstName())))
-                        .andExpect(jsonPath("$[0].lastName", is(user.getLastName())));
+                    .andExpect(jsonPath("$[0].id", is(String.valueOf(user.getId()))))
+                    .andExpect(jsonPath("$[0].userName", is(user.getUserName())))
+                    .andExpect(jsonPath("$[0].firstName", is(user.getFirstName())))
+                    .andExpect(jsonPath("$[0].lastName", is(user.getLastName())));
 
             verify(userService).getAllUsers();
         }
@@ -641,7 +667,7 @@ class UserControllerImplTest {
                 .andExpect(jsonPath("$.userName", is(user.getUserName())))
                 .andExpect(jsonPath("$.firstName", is(user.getFirstName())))
                 .andExpect(jsonPath("$.lastName", is(user.getLastName())));
-                 // password hidden!
+        // password hidden!
     }
 
     private void verifyUpdatedUser(String loggedUserName, User expected) {
