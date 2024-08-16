@@ -1,12 +1,11 @@
 package cz.demo.usermanagement.repository;
 
+import cz.demo.usermanagement.AbstractIntegrationTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import cz.demo.usermanagement.repository.entity.User;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +14,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace= Replace.NONE)
-@ActiveProfiles("test")
-@Tag("integration-test")
-@DisplayName("Given user repository with 2 users")
-class UserDAOIntTest {
+@AutoConfigureTestDatabase(replace= AutoConfigureTestDatabase.Replace.NONE)
+class UserDAOIntTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserDAO tested;
@@ -82,21 +78,9 @@ class UserDAOIntTest {
                     () -> assertThat(savedUser.getPassword()).isEqualTo(user.getPassword())
             );
 
-        }
+            // clean up
+            tested.deleteById(savedUser.getId());
 
-        @Test
-        @DisplayName("new password success")
-        void whenNewPassword_thenSave_success() {
-
-            // given
-            var newPassword = "password123";
-            existingUser1.setPassword(newPassword);
-
-            // when
-            User savedUser = tested.save(existingUser1);
-
-            // then
-            assertThat(savedUser.getPassword()).isEqualTo(newPassword);
         }
 
         @Test
@@ -135,6 +119,27 @@ class UserDAOIntTest {
             // then
             assertThat(foundUser).isNotPresent();
 
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Update")
+    class Update{
+
+        @Test
+        @DisplayName("new password success")
+        void whenNewPassword_thenUpdate_success() {
+
+            // given
+            var newPassword = "password123";
+            existingUser1.setPassword(newPassword);
+
+            // when
+            User savedUser = tested.update(existingUser1);
+
+            // then
+            assertThat(savedUser.getPassword()).isEqualTo(newPassword);
         }
 
     }

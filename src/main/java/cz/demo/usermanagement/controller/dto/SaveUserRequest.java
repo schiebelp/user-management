@@ -24,8 +24,9 @@ public class SaveUserRequest {
      */
     @NotBlank(message = "{validation.userName.mandatory}")
     @ValidUsername
-    private String userName;
-
+    private String userName; // todo check ValidSubmissionPayload https://github.com/corona-warn-app/cwa-server/blob/main/services/submission/src/main/java/app/coronawarn/server/services/submission/validation/ValidSubmissionPayload.java
+                                //app.coronawarn.server.services.submission.validation.ValidSubmissionPayload.SubmissionPayloadValidator#isValid
+                                //app.coronawarn.server.common.persistence.domain.validation.ValidCountry
     /**
      * User's password for registration.
      *

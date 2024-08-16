@@ -1,6 +1,7 @@
 package cz.demo.usermanagement.service;
 
 
+import cz.demo.usermanagement.AbstractIntegrationTest;
 import cz.demo.usermanagement.exception.UserAlreadyExistsException;
 import cz.demo.usermanagement.exception.UserNotFoundException;
 import cz.demo.usermanagement.mapper.UserMapper;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,11 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Tag("integration-test")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @DisplayName("Given user service with 2 users")
-class UserServiceIntTest {
+class UserServiceIntTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserDAO userDAO;
@@ -51,16 +49,16 @@ class UserServiceIntTest {
     @BeforeEach
     void setUp() {
         existingUser1 = User.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .userName("johndoe")
-                .password("password123")
+                .firstName("Albert")
+                .lastName("Einstein")
+                .userName("alberteinstein")
+                .password("password364")
                 .build();
         existingUser2 = User.builder()
-                .firstName("Jane")
-                .lastName("Smith")
-                .userName("janesmith")
-                .password("password456")
+                .firstName("Steve")
+                .lastName("Jobs")
+                .userName("stevejobs")
+                .password("password428")
                 .build();
 
         userRepository.save(existingUser1);
@@ -73,6 +71,11 @@ class UserServiceIntTest {
         userRepository.deleteById(existingUser2.getId());
     }
 
+    @Test
+    @DisplayName("Database connection is valid")
+    void testDatabaseConnection() {
+        assertThat(userRepository.count()).isNotNegative();
+    }
 
     @Nested
     @DisplayName("Create a new user")

@@ -1,6 +1,6 @@
 services:
   postgres-db:
-    image: postgres:16
+    image: postgres:16-alpine
     networks:
       - user-management-network
     volumes:

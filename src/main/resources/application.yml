@@ -1,3 +1,39 @@
 spring:
-  config:
-    import: application-local.yml
+
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/api_db
+    username: api_user
+    password: 'pwapi'
+
+    hikari:
+      minimumIdle: 2
+      maximumPoolSize: 10 # lets avoid deadlock, see: https://stackoverflow.com/questions/55026422/default-maximumpoolsize-for-hikaricp
+      idleTimeout: 120000
+      connectionTimeout: 5000 # No Time For Caution...
+      leakDetectionThreshold: 2000
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+      format_sql: true
+
+  admin:
+    username: admin
+    password: $2a$10$JF.GmZ5gwEJKPpLwGa5FN.L/.ir/KzEt9tTqnvriUJmEyb1BVRTi6
+
+  messages:
+    basename: messages
+
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    org:
+      springframework: DEBUG
+      testcontainers: DEBUG
+      hibernate.SQL: DEBUG

@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
@@ -20,7 +21,10 @@ import java.util.Optional;
 
 @Repository
 @Slf4j
+@Transactional
 public class UserDAOImpl implements UserDAO {
+
+    private static final String ROLES = "roles";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -56,8 +60,12 @@ public class UserDAOImpl implements UserDAO {
 
         CriteriaQuery<User> criteria = entityManager.getCriteriaBuilder().createQuery(User.class);
 
-        Root<User> root = criteria.from(User.class);
-        criteria.select(root);
+        Root<User> from = criteria.from(User.class);
+
+        // Perform a fetch join to load roles along with the user
+        from.fetch(ROLES, JoinType.LEFT);
+
+        criteria.select(from);
 
         return entityManager.createQuery(criteria).getResultList();
     }
@@ -78,7 +86,7 @@ public class UserDAOImpl implements UserDAO {
 
         if (fetchRoles) {
             // Perform a fetch join to load roles along with the user
-            from.fetch("roles", JoinType.LEFT);
+            from.fetch(ROLES, JoinType.LEFT);
         }
 
         criteria.select(from);
@@ -100,7 +108,7 @@ public class UserDAOImpl implements UserDAO {
         Root<User> root = criteria.from(User.class);
 
         criteria.select(root)
-                .where(builder.equal(root.join("roles").get("name"), role));
+                .where(builder.equal(root.join(ROLES).get("name"), role));
 
         return entityManager.createQuery(criteria).getResultList();
     }

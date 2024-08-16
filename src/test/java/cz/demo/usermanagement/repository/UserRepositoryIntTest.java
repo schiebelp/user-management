@@ -1,12 +1,11 @@
 package cz.demo.usermanagement.repository;
 
+import cz.demo.usermanagement.AbstractIntegrationTest;
 import cz.demo.usermanagement.repository.entity.User;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,11 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace= Replace.NONE)
-@ActiveProfiles("test")
-@Tag("integration-test")
-@DisplayName("Given user repository with 2 users")
-class UserRepositoryIntTest {
+@AutoConfigureTestDatabase(replace= AutoConfigureTestDatabase.Replace.NONE)
+class UserRepositoryIntTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserRepository tested;
@@ -61,6 +57,12 @@ class UserRepositoryIntTest {
                         .toList() );
 
         assertThat(users).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Database connection is valid")
+    void testDatabaseConnection() {
+        assertThat(tested.count()).isNotNegative();
     }
 
     @Nested
