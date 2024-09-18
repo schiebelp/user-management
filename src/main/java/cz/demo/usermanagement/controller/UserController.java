@@ -81,7 +81,7 @@ public class UserController implements UserApi {
     }
 
     /**
-     * GET /users/{id} : Get a user by ID
+     * GET /users/{id} : Get user by ID
      */
     @Override
     @GetMapping("/{id}")

@@ -12,7 +12,7 @@ services:
       - POSTGRES_DB=api_db
     ports:
       - "5432:5432"
-  user-management:
+  app:
     image: user-management-image:latest
     networks:
       - user-management-network

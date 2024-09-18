@@ -20,7 +20,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 
 /**
- * Custom handler for REST API controller
+ * Custom exception handler for REST API controller
  */
 @RestControllerAdvice
 @Slf4j
